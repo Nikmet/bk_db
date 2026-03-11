@@ -18,7 +18,8 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
   const [isPending, startTransition] = useTransition();
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  const targetUrl = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/stocks";
+  const targetUrl =
+    callbackUrl && callbackUrl.startsWith("/dashboard") ? callbackUrl : "/dashboard/inventory";
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,6 +30,16 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
     const password = formData.get("password")?.toString() ?? "";
 
     setErrorText(null);
+
+    if (username.length < 3) {
+      setErrorText("Логин должен содержать минимум 3 символа");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorText("Пароль должен содержать минимум 6 символов");
+      return;
+    }
 
     startTransition(async () => {
       const result = await signIn("credentials", {

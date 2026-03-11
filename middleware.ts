@@ -1,35 +1,33 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PUBLIC_PATHS = ["/login"];
+const LOGIN_PATH = "/login";
+const DASHBOARD_HOME = "/dashboard/inventory";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-
-  if (pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
-  }
-
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  if (!token && !isPublicPath) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL(token ? DASHBOARD_HOME : LOGIN_PATH, request.url));
   }
 
-  if (token && isPublicPath) {
-    return NextResponse.redirect(new URL("/stocks", request.url));
+  if (pathname === LOGIN_PATH && token) {
+    return NextResponse.redirect(new URL(DASHBOARD_HOME, request.url));
+  }
+
+  if (!token && pathname.startsWith("/dashboard")) {
+    const loginUrl = new URL(LOGIN_PATH, request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/", "/login", "/dashboard/:path*"],
 };

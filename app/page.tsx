@@ -8,5 +8,5 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
-  redirect(session ? "/stocks" : "/login");
+  redirect(session ? "/dashboard/inventory" : "/login");
 }

@@ -15,9 +15,9 @@ Production-ready каркас внутренней системы расчёта
 
 - Публичная страница входа `/login`
 - Приватные страницы:
-  - `/stocks` - ввод остатков
-  - `/calculation/params` - параметры расчёта
-  - `/calculation/result` - результат расчёта (заглушка)
+  - `/dashboard/inventory` - ввод остатков
+  - `/dashboard/calculation/params` - параметры расчёта
+  - `/dashboard/calculation/result` - результат расчёта (заглушка)
 - Защита приватных роутов через `middleware.ts`
 - Авторизация `username + password` через Prisma `User`
 - Server actions для сохранения остатков и параметров
@@ -61,14 +61,13 @@ bun dev
 ## Тестовый доступ
 
 - Логин: `admin`
-- Пароль: значение `SEED_ADMIN_PASSWORD` из `.env` (по умолчанию `admin12345`)
+- Пароль: `admin123`
 
 ## Важные переменные окружения
 
 - `DATABASE_URL` - подключение к PostgreSQL
 - `NEXTAUTH_URL` - базовый URL приложения
 - `NEXTAUTH_SECRET` - секрет подписи JWT/сессии
-- `SEED_ADMIN_PASSWORD` - пароль для seed-пользователя `admin`
 
 ## Полезные команды
 

@@ -17,6 +17,18 @@ enum ResultStatus {
   READY
 }
 
+enum Unit {
+  PIECE
+  KILOGRAM
+  LITER
+}
+
+enum OrderMode {
+  PIECE
+  PACK
+  BOX
+}
+
 model User {
   id                 String              @id @default(cuid())
   username           String              @unique
@@ -24,9 +36,163 @@ model User {
   role               UserRole            @default(MANAGER)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+
   inventorySnapshots InventorySnapshot[] @relation("InventoryCreatedBy")
   calculationParams  CalculationParams[] @relation("ParamsCreatedBy")
   calculationResults CalculationResult[] @relation("ResultCreatedBy")
+
+  inventorySessions  InventorySession[]  @relation("InventorySessionCreatedBy")
+  forecastSessions   ForecastSession[]   @relation("ForecastSessionCreatedBy")
+  orderCalculations  OrderCalculation[]  @relation("OrderCalculationCreatedBy")
+  revenueHistory     RevenueHistory[]    @relation("RevenueHistoryCreatedBy")
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  name      String    @unique
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]
+
+  @@index([sortOrder])
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  code            String      @unique
+  name            String
+  unit            Unit
+  unitsPerBox     Int         @default(0)
+  unitsPerPack    Int         @default(0)
+  orderMode       OrderMode   @default(PIECE)
+  orderStep       Float       @default(1)
+  consumptionRate Float       @default(0)
+  isActive        Boolean     @default(true)
+  categoryId      String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  category              ProductCategory       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  inventoryItems        InventoryItem[]
+  orderCalculationItems OrderCalculationItem[]
+
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model InventorySession {
+  id           String             @id @default(cuid())
+  sessionDate  DateTime
+  location     String
+  comment      String?
+  createdById  String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  createdBy         User?              @relation("InventorySessionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  items             InventoryItem[]
+  orderCalculations OrderCalculation[]
+
+  @@index([sessionDate])
+  @@index([location])
+  @@index([createdById])
+}
+
+model InventoryItem {
+  id            String           @id @default(cuid())
+  sessionId     String
+  productId     String
+  boxCount      Int              @default(0)
+  packCount     Int              @default(0)
+  pieceCount    Int              @default(0)
+  totalQuantity Float            @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  session       InventorySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  product       Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([sessionId, productId])
+  @@index([productId])
+}
+
+model ForecastSession {
+  id              String             @id @default(cuid())
+  forecastDate    DateTime
+  predictedGuests Int
+  leadTimeDays    Int                @default(0)
+  safetyPercent   Float              @default(0)
+  comment         String?
+  createdById     String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  createdBy         User?               @relation("ForecastSessionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  orderCalculations OrderCalculation[]
+
+  @@index([forecastDate])
+  @@index([createdById])
+}
+
+model OrderCalculation {
+  id                 String                 @id @default(cuid())
+  forecastSessionId  String
+  inventorySessionId String?
+  createdById        String?
+  status             ResultStatus           @default(DRAFT)
+  calculatedAt       DateTime               @default(now())
+  summary            Json?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  forecastSession  ForecastSession   @relation(fields: [forecastSessionId], references: [id], onDelete: Cascade)
+  inventorySession InventorySession? @relation(fields: [inventorySessionId], references: [id], onDelete: SetNull)
+  createdBy        User?             @relation("OrderCalculationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  items            OrderCalculationItem[]
+
+  @@index([forecastSessionId])
+  @@index([inventorySessionId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model OrderCalculationItem {
+  id                         String           @id @default(cuid())
+  orderCalculationId         String
+  productId                  String
+  currentStock               Float            @default(0)
+  predictedConsumption       Float            @default(0)
+  safetyStockQuantity        Float            @default(0)
+  recommendedOrderQty        Float            @default(0)
+  recommendedOrderRoundedQty Float            @default(0)
+  createdAt                  DateTime         @default(now())
+  updatedAt                  DateTime         @updatedAt
+
+  orderCalculation OrderCalculation @relation(fields: [orderCalculationId], references: [id], onDelete: Cascade)
+  product          Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([orderCalculationId, productId])
+  @@index([productId])
+}
+
+model RevenueHistory {
+  id          String    @id @default(cuid())
+  revenueDate DateTime
+  location    String
+  amount      Float
+  guestCount  Int?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User?     @relation("RevenueHistoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([revenueDate])
+  @@index([location, revenueDate])
+  @@index([createdById])
 }
 
 model InventorySnapshot {
@@ -61,17 +227,17 @@ model CalculationParams {
 }
 
 model CalculationResult {
-  id                String             @id @default(cuid())
-  status            ResultStatus       @default(DRAFT)
-  summary           Json
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  createdById       String?
-  createdBy         User?              @relation("ResultCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  paramsId          String?
-  params            CalculationParams? @relation(fields: [paramsId], references: [id], onDelete: SetNull)
+  id                  String             @id @default(cuid())
+  status              ResultStatus       @default(DRAFT)
+  summary             Json
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  createdById         String?
+  createdBy           User?              @relation("ResultCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  paramsId            String?
+  params              CalculationParams? @relation(fields: [paramsId], references: [id], onDelete: SetNull)
   inventorySnapshotId String?
-  inventorySnapshot InventorySnapshot? @relation(fields: [inventorySnapshotId], references: [id], onDelete: SetNull)
+  inventorySnapshot   InventorySnapshot? @relation(fields: [inventorySnapshotId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([createdById])

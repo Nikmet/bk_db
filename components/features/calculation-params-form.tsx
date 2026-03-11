@@ -27,7 +27,7 @@ export function CalculationParamsForm() {
       });
 
       if (result.ok) {
-        router.push("/calculation/result");
+        router.push("/dashboard/calculation/result");
         router.refresh();
       }
     });

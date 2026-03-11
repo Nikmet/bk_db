@@ -1,4 +1,4 @@
-import { CalculationResultPanel } from "@/components/features/calculation-result-panel";
+﻿import { CalculationResultPanel } from "@/components/features/calculation-result-panel";
 import { prisma } from "@/lib/prisma";
 
 export default async function CalculationResultPage() {
@@ -23,3 +23,4 @@ export default async function CalculationResultPage() {
 
   return <CalculationResultPanel result={latestResult} />;
 }
+

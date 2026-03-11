@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/stocks", label: "Остатки" },
-  { href: "/calculation/params", label: "Параметры расчёта" },
-  { href: "/calculation/result", label: "Результат" },
+  { href: "/dashboard/inventory", label: "Остатки" },
+  { href: "/dashboard/forecast", label: "Прогноз" },
+  { href: "/dashboard/calculation/result", label: "Результат" },
 ];
 
 export function AppNav() {
@@ -17,7 +17,7 @@ export function AppNav() {
   return (
     <nav className="flex flex-wrap items-center gap-2">
       {links.map((link) => {
-        const isActive = pathname === link.href;
+        const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
 
         return (
           <Link

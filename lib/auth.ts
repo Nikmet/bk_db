@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 const credentialsSchema = z.object({
   username: z.string().min(3, "Введите корректный логин"),
-  password: z.string().min(1, "Введите пароль"),
+  password: z.string().min(6, "Введите корректный пароль"),
 });
 
 export const authOptions: NextAuthOptions = {
