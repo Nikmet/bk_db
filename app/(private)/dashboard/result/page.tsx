@@ -2,17 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-interface LegacyResultPageProps {
-  searchParams: Promise<{ orderCalculationId?: string }>;
-}
-
-export default async function LegacyResultPage({ searchParams }: LegacyResultPageProps) {
-  const params = await searchParams;
-
-  if (params.orderCalculationId) {
-    redirect(`/dashboard/result/${params.orderCalculationId}`);
-  }
-
+export default async function ResultIndexPage() {
   const latest = await prisma.orderCalculation.findFirst({
     orderBy: [{ calculatedAt: "desc" }],
     select: {

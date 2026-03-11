@@ -205,11 +205,11 @@ export function ForecastForm() {
                 variant="secondary"
                 onClick={() => {
                   if (lastOrderCalculationId) {
-                    router.push(`/dashboard/calculation/result?orderCalculationId=${lastOrderCalculationId}`);
+                    router.push(`/dashboard/result/${lastOrderCalculationId}`);
                     return;
                   }
 
-                  router.push("/dashboard/calculation/result");
+                  router.push("/dashboard/result");
                 }}
               >
                 Показать заказ

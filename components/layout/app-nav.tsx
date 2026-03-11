@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/dashboard/inventory", label: "Остатки" },
   { href: "/dashboard/forecast", label: "Прогноз" },
-  { href: "/dashboard/calculation/result", label: "Результат" },
+  { href: "/dashboard/result", label: "Результат" },
 ];
 
 export function AppNav() {
