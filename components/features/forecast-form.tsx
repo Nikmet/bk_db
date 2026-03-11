@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import {
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { calculateOrderAction } from "@/actions/calculate-order-action";
 import { forecastFormSchema, type ForecastFormValues } from "@/lib/validation/forecast";
 
 interface RevenuePoint {
@@ -67,6 +69,8 @@ function getTomorrowLabel(calculationDate: string): string {
 export function ForecastForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isCalculating, startCalculateTransition] = useTransition();
+  const [lastOrderCalculationId, setLastOrderCalculationId] = useState<string | null>(null);
 
   const form = useForm<ForecastFormValues>({
     resolver: zodResolver(forecastFormSchema),
@@ -105,10 +109,23 @@ export function ForecastForm() {
   }, [calculationDate, forecastRevenue]);
 
   const handleCalculate = form.handleSubmit(
-    () => {
-      toast({
-        type: "success",
-        title: "Расчёт успешно выполнен",
+    (values) => {
+      startCalculateTransition(async () => {
+        const result = await calculateOrderAction(values);
+
+        if (result.ok) {
+          setLastOrderCalculationId(result.orderCalculationId ?? null);
+          toast({
+            type: "success",
+            title: "Расчёт успешно выполнен",
+          });
+          return;
+        }
+
+        toast({
+          type: "error",
+          title: "Не все данные введены",
+        });
       });
     },
     () => {
@@ -180,11 +197,20 @@ export function ForecastForm() {
             />
 
             <div className="md:col-span-2 flex flex-wrap justify-end gap-2 pt-2">
-              <Button type="submit">Рассчитать заказ</Button>
+              <Button type="submit" loading={isCalculating}>
+                Рассчитать заказ
+              </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push("/dashboard/calculation/result")}
+                onClick={() => {
+                  if (lastOrderCalculationId) {
+                    router.push(`/dashboard/calculation/result?orderCalculationId=${lastOrderCalculationId}`);
+                    return;
+                  }
+
+                  router.push("/dashboard/calculation/result");
+                }}
               >
                 Показать заказ
               </Button>
