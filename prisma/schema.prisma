@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+enum ResultStatus {
+  DRAFT
+  READY
+}
+
+model User {
+  id                 String              @id @default(cuid())
+  username           String              @unique
+  passwordHash       String
+  role               UserRole            @default(MANAGER)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  inventorySnapshots InventorySnapshot[] @relation("InventoryCreatedBy")
+  calculationParams  CalculationParams[] @relation("ParamsCreatedBy")
+  calculationResults CalculationResult[] @relation("ResultCreatedBy")
+}
+
+model InventorySnapshot {
+  id                 String              @id @default(cuid())
+  location           String
+  snapshotDate       DateTime
+  comment            String?
+  items              Json
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  createdById        String?
+  createdBy          User?               @relation("InventoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  calculationResults CalculationResult[]
+
+  @@index([snapshotDate])
+  @@index([createdById])
+}
+
+model CalculationParams {
+  id                 String              @id @default(cuid())
+  forecastGuests     Int
+  leadTimeDays       Int
+  safetyPercent      Float
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  createdById        String?
+  createdBy          User?               @relation("ParamsCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  calculationResults CalculationResult[]
+
+  @@index([createdById, createdAt])
+}
+
+model CalculationResult {
+  id                String             @id @default(cuid())
+  status            ResultStatus       @default(DRAFT)
+  summary           Json
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  createdById       String?
+  createdBy         User?              @relation("ResultCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  paramsId          String?
+  params            CalculationParams? @relation(fields: [paramsId], references: [id], onDelete: SetNull)
+  inventorySnapshotId String?
+  inventorySnapshot InventorySnapshot? @relation(fields: [inventorySnapshotId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([createdById])
+}
