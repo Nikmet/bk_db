@@ -1,25 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  --bk-bg: #fff7ec;
-  --bk-surface: #fff0de;
-  --bk-surface-strong: #ffe4c4;
-  --bk-border: #f5cba7;
-  --bk-text: #2e1b0f;
-  --bk-text-muted: #6f4b2f;
+  --bk-bg: #fff8ed;
+  --bk-bg-muted: #fff3e1;
+  --bk-surface: #ffffff;
+  --bk-surface-soft: #fff8ef;
+  --bk-surface-strong: #ffe9cc;
+  --bk-border: #f0d8c0;
+  --bk-border-strong: #deb38d;
+  --bk-text: #2c1b10;
+  --bk-text-muted: #71523d;
   --bk-primary: #d62300;
-  --bk-primary-strong: #aa1c00;
-  --bk-primary-soft: #ffd7cb;
+  --bk-primary-strong: #a61a00;
+  --bk-primary-soft: #ffe2da;
+  --bk-orange: #ff8f1c;
+  --bk-orange-soft: #fff0da;
+  --bk-brown: #5d3017;
   --bk-success: #0f8f58;
   --bk-success-soft: #d8f6e8;
   --bk-warning: #a25f00;
   --bk-warning-soft: #ffedc9;
   --bk-danger: #b3251d;
   --bk-danger-soft: #fde2e0;
+  --bk-focus: #ffb379;
 }
 
 * {
   border-color: var(--bk-border);
+  scrollbar-color: #d9b38b #f9ecdc;
+  scrollbar-width: thin;
 }
 
 html,
@@ -30,14 +39,41 @@ body {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 0 0, #ffe9cc 0%, transparent 40%),
-    radial-gradient(circle at 100% 100%, #ffd7cb 0%, transparent 35%),
+    radial-gradient(circle at 0 0, #fff0d9 0%, transparent 34%),
+    radial-gradient(circle at 100% 100%, #ffe3d7 0%, transparent 30%),
     var(--bk-bg);
   color: var(--bk-text);
   font-family: var(--font-rubik), "Segoe UI", sans-serif;
+  line-height: 1.45;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--bk-primary-soft);
+  color: var(--bk-brown);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 code,
 pre {
   font-family: var(--font-source-code-pro), monospace;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }

@@ -25,10 +25,10 @@ export function AppNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-xl px-3 py-2 text-sm font-semibold transition-colors",
+              "rounded-xl border px-3 py-2 text-sm font-semibold transition-all",
               isActive
-                ? "bg-[var(--bk-primary)] text-white"
-                : "bg-[var(--bk-surface)] text-[var(--bk-text-muted)] hover:bg-[var(--bk-primary-soft)]",
+                ? "border-[var(--bk-primary)] bg-[var(--bk-primary)] text-white shadow-sm"
+                : "border-[var(--bk-border)] bg-[var(--bk-surface)] text-[var(--bk-text-muted)] hover:border-[var(--bk-border-strong)] hover:bg-[var(--bk-surface-soft)]",
             )}
           >
             {link.label}

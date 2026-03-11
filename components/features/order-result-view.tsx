@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type Unit = "PIECE" | "KILOGRAM" | "LITER";
 
@@ -144,7 +145,7 @@ export function OrderResultView({ calculation }: OrderResultViewProps) {
                 type="checkbox"
                 checked={onlyOrderItems}
                 onChange={(event) => setOnlyOrderItems(event.target.checked)}
-                className="h-4 w-4 rounded border-[var(--bk-border)]"
+                className="h-4 w-4 rounded border-[var(--bk-border)] accent-[var(--bk-primary)]"
               />
               показывать только товары к заказу
             </label>
@@ -154,7 +155,7 @@ export function OrderResultView({ calculation }: OrderResultViewProps) {
               <select
                 value={sortDirection}
                 onChange={(event) => setSortDirection(event.target.value as SortDirection)}
-                className="h-9 rounded-lg border border-[var(--bk-border)] bg-white px-2 text-sm text-[var(--bk-text)]"
+                className="h-9 rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-sm text-[var(--bk-text)] outline-none focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
               >
                 <option value="asc">A-Z</option>
                 <option value="desc">Z-A</option>
@@ -180,23 +181,29 @@ export function OrderResultView({ calculation }: OrderResultViewProps) {
             <p className="font-semibold">Итого округлённое количество: {totalRounded.toFixed(2)}</p>
           </div>
 
-          <div className="max-h-[68vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-white print:max-h-none print:overflow-visible">
+          {processedItems.length === 0 ? (
+            <EmptyState
+              title="Нет товаров к заказу"
+              description="Измените фильтр или выполните новый расчёт с другими параметрами."
+            />
+          ) : (
+            <div className="max-h-[68vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] print:max-h-none print:overflow-visible">
             <table className="min-w-[1240px] w-full border-collapse text-sm">
-              <thead className="sticky top-0 z-10 bg-[var(--bk-surface)] print:static">
+              <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)] shadow-sm print:static">
                 <tr>
-                  <th className="px-3 py-3 text-left font-semibold">Код номенклатуры</th>
-                  <th className="px-3 py-3 text-left font-semibold">Наименование продукта</th>
-                  <th className="px-3 py-3 text-right font-semibold">Текущий остаток</th>
-                  <th className="px-3 py-3 text-right font-semibold">Прогнозируемый расход</th>
-                  <th className="px-3 py-3 text-right font-semibold">Страховой запас</th>
-                  <th className="px-3 py-3 text-right font-semibold">Рекомендуемое количество</th>
-                  <th className="px-3 py-3 text-right font-semibold">Округлённое количество</th>
-                  <th className="px-3 py-3 text-center font-semibold">Единица измерения</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Код номенклатуры</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Наименование продукта</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Текущий остаток</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Прогнозируемый расход</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Страховой запас</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Рекомендуемое количество</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Округлённое количество</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Единица измерения</th>
                 </tr>
               </thead>
               <tbody>
                 {processedItems.map((item) => (
-                  <tr key={item.id} className="border-t border-[var(--bk-border)] odd:bg-[#fffdf9]">
+                  <tr key={item.id} className="border-t border-[var(--bk-border)] odd:bg-[#fffdfa]">
                     <td className="px-3 py-2 font-mono text-xs">{item.code}</td>
                     <td className="px-3 py-2">
                       <p className="font-medium">{item.name}</p>
@@ -214,7 +221,8 @@ export function OrderResultView({ calculation }: OrderResultViewProps) {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          )}
 
           <div className="print:hidden mt-4 flex flex-wrap justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => router.push("/dashboard/forecast")}>

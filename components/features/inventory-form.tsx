@@ -55,7 +55,7 @@ export function InventoryForm() {
           id="comment"
           name="comment"
           rows={3}
-          className="w-full rounded-xl border border-[var(--bk-border)] bg-white px-3 py-2 text-sm text-[var(--bk-text)] shadow-sm outline-none transition focus:border-[var(--bk-primary)] focus:ring-2 focus:ring-[var(--bk-primary-soft)]"
+          className="w-full rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm text-[var(--bk-text)] shadow-sm outline-none transition focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
           placeholder="Например: поставка курицы задерживается"
         />
       </div>

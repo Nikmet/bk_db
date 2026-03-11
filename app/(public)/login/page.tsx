@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md border-[var(--bk-border)] bg-white">
         <CardHeader>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--bk-primary)]">Burger King Supply</p>

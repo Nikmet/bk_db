@@ -8,8 +8,11 @@ import { z } from "zod";
 
 import { saveInventorySessionAction } from "@/actions/save-inventory-session-action";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { inventoryFormSchema, type InventoryFormValues } from "@/lib/validation/inventory";
 
@@ -111,6 +114,9 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
       .filter((category) => category.products.length > 0);
   }, [categories, searchQuery]);
 
+  const totalProducts = allProducts.length;
+  const visibleProducts = filteredCategories.reduce((sum, category) => sum + category.products.length, 0);
+
   const handleDownloadBlank = () => {
     const headers = [
       "Категория",
@@ -171,15 +177,42 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
     });
   });
 
+  if (totalProducts === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Ввод остатков продуктов</CardTitle>
+          <CardDescription>Справочник товаров пока пуст. Загрузите номенклатуру перед вводом остатков.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <EmptyState
+            title="Нет товаров для ввода"
+            description="Перейдите в раздел импорта товаров и загрузите актуальный Excel-справочник."
+          />
+          <div className="flex justify-end">
+            <Button type="button" onClick={() => router.push("/dashboard/products/import")}>
+              Перейти к импорту товаров
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <CardHeader className="gap-3">
+      <CardHeader className="gap-4">
         <CardTitle>Ввод остатков продуктов</CardTitle>
         <CardDescription>
           Пустые поля автоматически считаются как 0. Общее количество рассчитывается мгновенно на основе коробок,
           упаковок и единиц.
         </CardDescription>
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="default">Позиций: {totalProducts}</Badge>
+          <Badge variant="warning">Отображается: {visibleProducts}</Badge>
+          {isPending ? <Badge variant="success">Сохранение...</Badge> : null}
+        </div>
+        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
           <Input
             label="Поиск по коду и наименованию"
             placeholder="Например: BUN или булочка"
@@ -196,19 +229,27 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
       </CardHeader>
       <CardContent>
         <form id="inventory-session-form" onSubmit={onSubmit} className="space-y-3">
-          <div className="overflow-auto rounded-2xl border border-[var(--bk-border)] bg-white shadow-sm">
+          {isPending ? (
+            <div className="space-y-2 rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
+              <Skeleton className="h-8 w-52" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : null}
+          <div className="max-h-[70vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] shadow-sm">
             <table className="min-w-[1320px] w-full border-collapse text-sm">
-              <thead className="sticky top-0 z-20 bg-[var(--bk-surface)] text-[var(--bk-text)]">
+              <thead className="sticky top-0 z-20 bg-[var(--bk-surface-strong)] text-[var(--bk-text)] shadow-sm">
                 <tr>
-                  <th className="px-3 py-3 text-left font-semibold">Код номенклатуры</th>
-                  <th className="px-3 py-3 text-left font-semibold">Наименование продукта</th>
-                  <th className="px-3 py-3 text-right font-semibold">Штук в коробке</th>
-                  <th className="px-3 py-3 text-right font-semibold">Штук в упаковке</th>
-                  <th className="px-3 py-3 text-center font-semibold">Единица</th>
-                  <th className="px-3 py-3 text-right font-semibold">Ввод коробок</th>
-                  <th className="px-3 py-3 text-right font-semibold">Ввод упаковок</th>
-                  <th className="px-3 py-3 text-right font-semibold">Ввод штук/кг/л</th>
-                  <th className="px-3 py-3 text-right font-semibold">Общее количество</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Код номенклатуры</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Наименование продукта</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Штук в коробке</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Штук в упаковке</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Единица</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Ввод коробок</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Ввод упаковок</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Ввод штук/кг/л</th>
+                  <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Общее количество</th>
                 </tr>
               </thead>
               <tbody>
@@ -240,7 +281,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                           toNumber(rowValue?.pieceCount);
 
                         return (
-                          <tr key={product.id} className="border-t border-[var(--bk-border)] odd:bg-[#fffdf9]">
+                          <tr key={product.id} className="border-t border-[var(--bk-border)] odd:bg-[#fffdfa]">
                             <td className="px-3 py-2 font-mono text-xs">{product.code}</td>
                             <td className="px-3 py-2">{product.name}</td>
                             <td className="px-3 py-2 text-right">{product.unitsPerBox}</td>
@@ -251,7 +292,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-white px-2 text-right text-sm outline-none focus:border-[var(--bk-primary)] focus:ring-2 focus:ring-[var(--bk-primary-soft)]"
+                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
                                 {...form.register(`rows.${rowIndex}.boxCount`, {
                                   setValueAs: parseCountInput,
                                 })}
@@ -262,7 +303,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-white px-2 text-right text-sm outline-none focus:border-[var(--bk-primary)] focus:ring-2 focus:ring-[var(--bk-primary-soft)]"
+                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
                                 {...form.register(`rows.${rowIndex}.packCount`, {
                                   setValueAs: parseCountInput,
                                 })}
@@ -273,7 +314,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-white px-2 text-right text-sm outline-none focus:border-[var(--bk-primary)] focus:ring-2 focus:ring-[var(--bk-primary-soft)]"
+                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
                                 {...form.register(`rows.${rowIndex}.pieceCount`, {
                                   setValueAs: parseCountInput,
                                 })}
@@ -293,7 +334,9 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
           </div>
 
           {form.formState.errors.rows ? (
-            <p className="text-sm text-[var(--bk-danger)]">Проверьте введённые значения в таблице.</p>
+            <div className="rounded-xl border border-[#efb8b4] bg-[var(--bk-danger-soft)] px-3 py-2 text-sm text-[var(--bk-danger)]">
+              Проверьте введённые значения в таблице.
+            </div>
           ) : null}
         </form>
       </CardContent>

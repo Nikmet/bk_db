@@ -72,7 +72,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <Input name="username" label="Логин" placeholder="admin" autoComplete="username" required />
+      <Input name="username" label="Логин" placeholder="admin" autoComplete="username" autoFocus required />
       <Input
         name="password"
         label="Пароль"

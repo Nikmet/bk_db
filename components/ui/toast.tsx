@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -97,19 +97,30 @@ interface ToastProps {
 }
 
 const toastStyles: Record<ToastType, string> = {
-  info: "border-[var(--bk-border)] bg-white",
-  success: "border-[var(--bk-success)] bg-[var(--bk-success-soft)]",
-  error: "border-[var(--bk-danger)] bg-[var(--bk-danger-soft)]",
+  info: "border-[var(--bk-border)] bg-[var(--bk-surface)]",
+  success: "border-[#9adcbf] bg-[var(--bk-success-soft)]",
+  error: "border-[#efb8b4] bg-[var(--bk-danger-soft)]",
+};
+
+const toastIcons: Record<ToastType, string> = {
+  info: "i",
+  success: "ok",
+  error: "!",
 };
 
 export function Toast({ type, title, description, onClose }: ToastProps) {
   return (
-    <div className="pointer-events-auto rounded-xl border shadow-lg">
+    <div className="pointer-events-auto animate-[toast-in_0.2s_ease-out] rounded-xl border shadow-lg">
       <div className={cn("rounded-xl border p-3", toastStyles[type])}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-[var(--bk-text)]">{title}</p>
-            {description ? <p className="text-sm text-[var(--bk-text-muted)]">{description}</p> : null}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/85 px-1 text-xs font-black uppercase text-[var(--bk-text-muted)]">
+              {toastIcons[type]}
+            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--bk-text)]">{title}</p>
+              {description ? <p className="text-sm text-[var(--bk-text-muted)]">{description}</p> : null}
+            </div>
           </div>
           <button
             type="button"

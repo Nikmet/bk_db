@@ -8,14 +8,14 @@ export const Table = forwardRef<HTMLTableElement, TableHTMLAttributes<HTMLTableE
   ref,
 ) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-[var(--bk-border)]">
+    <div className="w-full overflow-x-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] shadow-sm">
       <table ref={ref} className={cn("w-full border-collapse text-sm", className)} {...props} />
     </div>
   );
 });
 
 export function TableHeader({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("bg-[var(--bk-surface)]", className)} {...props} />;
+  return <thead className={cn("bg-[var(--bk-surface-strong)]", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -23,11 +23,24 @@ export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSecti
 }
 
 export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("border-b border-[var(--bk-border)]", className)} {...props} />;
+  return (
+    <tr
+      className={cn(
+        "border-b border-[var(--bk-border)] transition-colors odd:bg-[#fffdfa] hover:bg-[var(--bk-bg-muted)]",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={cn("px-4 py-3 text-left font-semibold text-[var(--bk-text-muted)]", className)} {...props} />;
+  return (
+    <th
+      className={cn("px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]", className)}
+      {...props}
+    />
+  );
 }
 
 export function TableCell({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {

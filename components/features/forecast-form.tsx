@@ -16,8 +16,11 @@ import {
 } from "recharts";
 
 import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { calculateOrderAction } from "@/actions/calculate-order-action";
 import { forecastFormSchema, type ForecastFormValues } from "@/lib/validation/forecast";
@@ -138,13 +141,7 @@ export function ForecastForm() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-[var(--bk-primary)] bg-[var(--bk-primary-soft)]">
-        <CardContent className="py-4">
-          <p className="text-sm font-semibold text-[var(--bk-primary-strong)]">
-            Поставка осуществляется по понедельникам, средам и пятницам
-          </p>
-        </CardContent>
-      </Card>
+      <Alert variant="info">Поставка осуществляется по понедельникам, средам и пятницам</Alert>
 
       <Card>
         <CardHeader>
@@ -203,6 +200,7 @@ export function ForecastForm() {
               <Button
                 type="button"
                 variant="secondary"
+                disabled={isCalculating}
                 onClick={() => {
                   if (lastOrderCalculationId) {
                     router.push(`/dashboard/result/${lastOrderCalculationId}`);
@@ -225,42 +223,51 @@ export function ForecastForm() {
           <CardDescription>Моковые исторические данные и прогноз на следующий день.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="h-80 w-full rounded-xl border border-[var(--bk-border)] bg-white p-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0d7bf" />
-                <XAxis dataKey="date" tick={{ fill: "#6f4b2f", fontSize: 12 }} />
-                <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: "#6f4b2f", fontSize: 12 }} />
-                <Tooltip
-                  formatter={(value) => formatMoney(toNumber(value))}
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: "1px solid #f5cba7",
-                    backgroundColor: "#fff",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#d62300"
-                  strokeWidth={3}
-                  dot={(props) => {
-                    const payload = props.payload as RevenuePoint;
-                    return (
-                      <circle
-                        cx={props.cx}
-                        cy={props.cy}
-                        r={payload.isForecast ? 6 : 4}
-                        fill={payload.isForecast ? "#0f8f58" : "#d62300"}
-                        stroke="#fff"
-                        strokeWidth={2}
-                      />
-                    );
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {isCalculating ? (
+            <div className="h-80 w-full space-y-3 rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-60 w-full" />
+            </div>
+          ) : chartData.length > 0 ? (
+            <div className="h-80 w-full rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0d7bf" />
+                  <XAxis dataKey="date" tick={{ fill: "#6f4b2f", fontSize: 12 }} />
+                  <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: "#6f4b2f", fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value) => formatMoney(toNumber(value))}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "1px solid #f0d8c0",
+                      backgroundColor: "#ffffff",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#d62300"
+                    strokeWidth={3}
+                    dot={(props) => {
+                      const payload = props.payload as RevenuePoint;
+                      return (
+                        <circle
+                          cx={props.cx}
+                          cy={props.cy}
+                          r={payload.isForecast ? 6 : 4}
+                          fill={payload.isForecast ? "#0f8f58" : "#d62300"}
+                          stroke="#fff"
+                          strokeWidth={2}
+                        />
+                      );
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyState title="Нет данных для графика" description="Добавьте данные по товарообороту, чтобы построить прогноз." />
+          )}
 
           <div className="rounded-xl border border-[var(--bk-success)] bg-[var(--bk-success-soft)] p-4">
             <p className="text-sm text-[var(--bk-text-muted)]">Прогноз на следующий день</p>

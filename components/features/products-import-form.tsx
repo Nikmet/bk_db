@@ -5,7 +5,10 @@ import * as XLSX from "xlsx";
 
 import { importProductsAction, type ImportProductsActionResult } from "@/actions/import-products-action";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { productImportRowSchema, type ProductImportDraftRow } from "@/lib/validation/product-import";
 import { mapOrderMode, mapUnit, normalizeProductCode } from "@/lib/utils/product-import";
@@ -52,6 +55,7 @@ export function ProductsImportForm() {
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [report, setReport] = useState<ImportProductsActionResult | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
   const [isImporting, startImportTransition] = useTransition();
 
   const previewStats = useMemo(() => {
@@ -134,6 +138,7 @@ export function ProductsImportForm() {
     }
 
     setReport(null);
+    setIsParsing(true);
 
     try {
       const rows = await parseFile(file);
@@ -152,6 +157,8 @@ export function ProductsImportForm() {
         title: "Ошибка чтения файла",
         description: error instanceof Error ? error.message : "Не удалось распарсить xlsx-файл",
       });
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -188,24 +195,40 @@ export function ProductsImportForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileChange}
-              className="block rounded-lg border border-[var(--bk-border)] bg-white px-3 py-2 text-sm"
-            />
+            <label className="cursor-pointer rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm font-medium text-[var(--bk-text)] hover:border-[var(--bk-border-strong)]">
+              Выбрать файл
+              <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="sr-only" />
+            </label>
             <Button type="button" onClick={handleImport} loading={isImporting}>
               Импортировать
             </Button>
           </div>
           {fileName ? <p className="text-sm text-[var(--bk-text-muted)]">Файл: {fileName}</p> : null}
-          {previewRows.length > 0 ? (
-            <div className="grid gap-2 md:grid-cols-3">
-              <p className="rounded-lg bg-[var(--bk-surface)] px-3 py-2 text-sm">Всего строк: {previewStats.total}</p>
-              <p className="rounded-lg bg-[var(--bk-success-soft)] px-3 py-2 text-sm">Валидных: {previewStats.valid}</p>
-              <p className="rounded-lg bg-[var(--bk-danger-soft)] px-3 py-2 text-sm">С ошибками: {previewStats.invalid}</p>
+          {isParsing ? (
+            <div className="space-y-2 rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
             </div>
           ) : null}
+          {previewRows.length > 0 ? (
+            <div className="grid gap-2 md:grid-cols-3">
+              <p className="rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm">
+                Всего строк: {previewStats.total}
+              </p>
+              <p className="rounded-lg border border-[#9adcbf] bg-[var(--bk-success-soft)] px-3 py-2 text-sm">
+                Валидных: {previewStats.valid}
+              </p>
+              <p className="rounded-lg border border-[#efb8b4] bg-[var(--bk-danger-soft)] px-3 py-2 text-sm">
+                С ошибками: {previewStats.invalid}
+              </p>
+            </div>
+          ) : (
+            <EmptyState
+              title="Нет данных для предпросмотра"
+              description="Загрузите xlsx-файл со справочником товаров, чтобы увидеть строки перед импортом."
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -216,9 +239,9 @@ export function ProductsImportForm() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 md:grid-cols-3">
-              <p className="rounded-lg bg-[var(--bk-success-soft)] px-3 py-2 text-sm">Добавлено: {report.added}</p>
-              <p className="rounded-lg bg-[var(--bk-surface)] px-3 py-2 text-sm">Обновлено: {report.updated}</p>
-              <p className="rounded-lg bg-[var(--bk-warning-soft)] px-3 py-2 text-sm">Пропущено: {report.skipped}</p>
+              <p className="rounded-lg border border-[#9adcbf] bg-[var(--bk-success-soft)] px-3 py-2 text-sm">Добавлено: {report.added}</p>
+              <p className="rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm">Обновлено: {report.updated}</p>
+              <p className="rounded-lg border border-[#ffd28f] bg-[var(--bk-warning-soft)] px-3 py-2 text-sm">Пропущено: {report.skipped}</p>
             </div>
           </CardContent>
         </Card>
@@ -230,26 +253,26 @@ export function ProductsImportForm() {
             <CardTitle>Предпросмотр перед импортом</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-[65vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-white">
+            <div className="max-h-[65vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)]">
               <table className="min-w-[1280px] w-full border-collapse text-sm">
-                <thead className="sticky top-0 z-10 bg-[var(--bk-surface)]">
+                <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)] shadow-sm">
                   <tr>
-                    <th className="px-3 py-2 text-left">Строка</th>
-                    <th className="px-3 py-2 text-left">code</th>
-                    <th className="px-3 py-2 text-left">name</th>
-                    <th className="px-3 py-2 text-left">category</th>
-                    <th className="px-3 py-2 text-right">unitsPerBox</th>
-                    <th className="px-3 py-2 text-right">unitsPerPack</th>
-                    <th className="px-3 py-2 text-left">unit</th>
-                    <th className="px-3 py-2 text-right">consumptionRate</th>
-                    <th className="px-3 py-2 text-left">orderMode</th>
-                    <th className="px-3 py-2 text-right">orderStep</th>
-                    <th className="px-3 py-2 text-left">Статус</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Строка</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">code</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">name</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">category</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unitsPerBox</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unitsPerPack</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unit</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">consumptionRate</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">orderMode</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">orderStep</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Статус</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((row) => (
-                    <tr key={`${row.rowNumber}-${row.normalizedCode}`} className="border-t border-[var(--bk-border)]">
+                    <tr key={`${row.rowNumber}-${row.normalizedCode}`} className="border-t border-[var(--bk-border)] odd:bg-[#fffdfa]">
                       <td className="px-3 py-2">{row.rowNumber}</td>
                       <td className="px-3 py-2 font-mono text-xs">{row.draft.code}</td>
                       <td className="px-3 py-2">{row.draft.name}</td>
@@ -262,9 +285,11 @@ export function ProductsImportForm() {
                       <td className="px-3 py-2 text-right">{String(row.draft.orderStep)}</td>
                       <td className="px-3 py-2">
                         {row.errors.length > 0 ? (
-                          <span className="text-xs font-semibold text-[var(--bk-danger)]">{row.errors.join("; ")}</span>
+                          <Badge variant="danger" className="normal-case tracking-normal">
+                            {row.errors.join("; ")}
+                          </Badge>
                         ) : (
-                          <span className="text-xs font-semibold text-[var(--bk-success)]">OK</span>
+                          <Badge variant="success">OK</Badge>
                         )}
                       </td>
                     </tr>
