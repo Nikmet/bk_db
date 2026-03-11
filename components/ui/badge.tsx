@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 type BadgeVariant = "default" | "success" | "warning" | "danger";
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "border border-[#f7b8aa] bg-[var(--bk-primary-soft)] text-[var(--bk-primary-strong)]",
-  success: "border border-[#9adcbf] bg-[var(--bk-success-soft)] text-[var(--bk-success)]",
-  warning: "border border-[#ffd28f] bg-[var(--bk-warning-soft)] text-[var(--bk-warning)]",
-  danger: "border border-[#efb8b4] bg-[var(--bk-danger-soft)] text-[var(--bk-danger)]",
+  default: "border border-[#f3d4c8] bg-[#f7e7de] text-[var(--bk-primary)]",
+  success: "border border-[#c7e3d3] bg-[var(--bk-success-soft)] text-[var(--bk-success)]",
+  warning: "border border-[#edd5a8] bg-[var(--bk-warning-soft)] text-[var(--bk-warning)]",
+  danger: "border border-[#edc2be] bg-[var(--bk-danger-soft)] text-[var(--bk-danger)]",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -19,7 +19,7 @@ export function Badge({ className, variant = "default", ...props }: BadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold",
         variantClasses[variant],
         className,
       )}

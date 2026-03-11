@@ -1,0 +1,14 @@
+# Local/dev artifacts
+.next
+node_modules
+coverage
+*.log
+
+# Local environment files
+.env
+.env.*
+
+# Non-runtime project files
+docs
+**/*.test.ts
+**/*.test.tsx

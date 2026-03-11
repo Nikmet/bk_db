@@ -15,8 +15,8 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "BK Supply Calculator",
-  description: "Внутренняя система расчёта поставок Burger King",
+  title: "Система расчёта поставок Бургер Кинг",
+  description: "Внутренняя система расчёта поставок Бургер Кинг",
 };
 
 export default function RootLayout({

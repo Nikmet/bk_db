@@ -145,7 +145,7 @@ export function ForecastForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Параметры прогноза поставки</CardTitle>
+          <CardTitle className="text-3xl">Параметры прогноза поставки</CardTitle>
           <CardDescription>Заполните обязательные поля для расчёта заказа.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -219,27 +219,27 @@ export function ForecastForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>График выручки</CardTitle>
+          <CardTitle className="text-3xl">График выручки</CardTitle>
           <CardDescription>Моковые исторические данные и прогноз на следующий день.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {isCalculating ? (
-            <div className="h-80 w-full space-y-3 rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
+            <div className="h-80 w-full space-y-3 rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
               <Skeleton className="h-6 w-40" />
               <Skeleton className="h-60 w-full" />
             </div>
           ) : chartData.length > 0 ? (
-            <div className="h-80 w-full rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
+            <div className="h-80 w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0d7bf" />
-                  <XAxis dataKey="date" tick={{ fill: "#6f4b2f", fontSize: 12 }} />
-                  <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: "#6f4b2f", fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ddd7d0" />
+                  <XAxis dataKey="date" tick={{ fill: "#8f7f72", fontSize: 12 }} />
+                  <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: "#8f7f72", fontSize: 12 }} />
                   <Tooltip
                     formatter={(value) => formatMoney(toNumber(value))}
                     contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid #f0d8c0",
+                      borderRadius: 6,
+                      border: "1px solid #ddd7d0",
                       backgroundColor: "#ffffff",
                     }}
                   />
@@ -254,8 +254,8 @@ export function ForecastForm() {
                         <circle
                           cx={props.cx}
                           cy={props.cy}
-                          r={payload.isForecast ? 6 : 4}
-                          fill={payload.isForecast ? "#0f8f58" : "#d62300"}
+                          r={payload.isForecast ? 5 : 3}
+                          fill={payload.isForecast ? "#2c8a5a" : "#d62300"}
                           stroke="#fff"
                           strokeWidth={2}
                         />
@@ -269,9 +269,9 @@ export function ForecastForm() {
             <EmptyState title="Нет данных для графика" description="Добавьте данные по товарообороту, чтобы построить прогноз." />
           )}
 
-          <div className="rounded-xl border border-[var(--bk-success)] bg-[var(--bk-success-soft)] p-4">
+          <div className="rounded-md border border-[#c7e3d3] bg-[var(--bk-success-soft)] p-4">
             <p className="text-sm text-[var(--bk-text-muted)]">Прогноз на следующий день</p>
-            <p className="mt-1 text-2xl font-black text-[var(--bk-success)]">{formatMoney(forecastRevenue)}</p>
+            <p className="mt-1 text-2xl font-extrabold text-[var(--bk-success)]">{formatMoney(forecastRevenue)}</p>
           </div>
         </CardContent>
       </Card>

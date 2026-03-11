@@ -14,17 +14,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-[var(--bk-primary)] text-white shadow-sm hover:bg-[var(--bk-primary-strong)] active:translate-y-px",
+    "border border-[var(--bk-primary)] bg-[var(--bk-primary)] text-white hover:bg-[var(--bk-primary-strong)]",
   secondary:
-    "border border-[var(--bk-border)] bg-[var(--bk-surface)] text-[var(--bk-text)] shadow-sm hover:border-[var(--bk-border-strong)] hover:bg-[var(--bk-surface-soft)]",
-  ghost: "bg-transparent text-[var(--bk-brown)] hover:bg-[var(--bk-orange-soft)]",
-  danger: "bg-[var(--bk-danger)] text-white shadow-sm hover:opacity-95 active:translate-y-px",
+    "border border-[var(--bk-border)] bg-[var(--bk-surface-soft)] text-[var(--bk-text)] hover:border-[var(--bk-border-strong)] hover:bg-[#ece6df]",
+  ghost: "border border-transparent bg-transparent text-[var(--bk-text)] hover:bg-[var(--bk-surface-strong)]",
+  danger: "border border-[var(--bk-danger)] bg-[var(--bk-danger)] text-white hover:opacity-95",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  sm: "h-8 px-3 text-xs",
+  md: "h-9 px-4 text-sm",
+  lg: "h-10 px-5 text-sm",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -36,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-focus)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-focus)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60",
         variantClasses[variant],
         sizeClasses[size],
         className,

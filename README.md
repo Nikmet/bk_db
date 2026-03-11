@@ -1,8 +1,8 @@
-﻿# BK Supply Calculator
+# Система расчёта поставок Burger King
 
-Production-ready каркас внутренней системы расчёта заказов поставки для Burger King.
+Внутренняя веб-система для ввода остатков, расчёта заказа и работы со справочником товаров.
 
-## Стек
+## Технологии
 
 - Next.js 15 (App Router)
 - TypeScript
@@ -11,19 +11,15 @@ Production-ready каркас внутренней системы расчёта
 - NextAuth (Credentials)
 - Bun
 
-## Функциональная база
+## Основные страницы
 
-- Публичная страница входа `/login`
-- Приватные страницы:
-  - `/dashboard/inventory` - ввод остатков
-  - `/dashboard/calculation/params` - параметры расчёта
-  - `/dashboard/calculation/result` - результат расчёта (заглушка)
-- Защита приватных роутов через `middleware.ts`
-- Авторизация `username + password` через Prisma `User`
-- Server actions для сохранения остатков и параметров
-- UI-kit: `Button`, `Input`, `Card`, `Table`, `Badge`, `Toast`
+- `/login` — вход в систему
+- `/dashboard/inventory` — ввод остатков
+- `/dashboard/forecast` — параметры прогноза и запуск расчёта
+- `/dashboard/result/[id]` — результат расчёта
+- `/dashboard/products/import` — импорт справочника товаров
 
-## Быстрый старт
+## Локальный запуск
 
 1. Установите зависимости:
 
@@ -31,7 +27,7 @@ Production-ready каркас внутренней системы расчёта
 bun install
 ```
 
-2. Подготовьте окружение:
+2. Создайте `.env`:
 
 ```bash
 cp .env.example .env
@@ -50,30 +46,60 @@ bun prisma:generate
 bun prisma:seed
 ```
 
-5. Запустите проект:
+5. Запустите приложение:
 
 ```bash
 bun dev
 ```
 
-Откройте `http://localhost:3000`.
-
-## Тестовый доступ
-
-- Логин: `admin`
-- Пароль: `admin123`
-
-## Важные переменные окружения
-
-- `DATABASE_URL` - подключение к PostgreSQL
-- `NEXTAUTH_URL` - базовый URL приложения
-- `NEXTAUTH_SECRET` - секрет подписи JWT/сессии
-
-## Полезные команды
+## Проверка перед деплоем
 
 ```bash
 bun lint
 bun run build
-bun db:studio
+```
+
+## Переменные окружения
+
+- `DATABASE_URL` — строка подключения PostgreSQL
+- `NEXTAUTH_URL` — базовый URL приложения
+- `NEXTAUTH_SECRET` — секрет для подписи JWT/сессии
+
+## Деплой на Vercel
+
+Проект уже подготовлен к деплою:
+
+- добавлен `vercel.json` c Bun-командами сборки;
+- добавлен `.vercelignore` для уменьшения deployment context;
+- `postinstall` выполняет `prisma generate`.
+
+### Вариант 1: через интерфейс Vercel
+
+1. Импортируйте репозиторий в Vercel.
+2. В `Environment Variables` добавьте:
+   - `DATABASE_URL`
+   - `NEXTAUTH_URL` (например `https://<project>.vercel.app`)
+   - `NEXTAUTH_SECRET`
+3. Запустите Deploy.
+
+### Вариант 2: через Vercel CLI
+
+```bash
+vercel
+```
+
+Для production-деплоя:
+
+```bash
+vercel --prod
+```
+
+## Полезные команды
+
+```bash
+bun prisma:generate
+bun prisma:migrate
+bun prisma:seed
 bun db:push
+bun db:studio
 ```

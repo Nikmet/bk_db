@@ -16,9 +16,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const inputId = id ?? props.name;
 
   return (
-    <div className="flex w-full flex-col gap-1.5">
+    <div className="flex w-full flex-col gap-2">
       {label ? (
-        <label htmlFor={inputId} className="text-sm font-medium text-[var(--bk-text-muted)]">
+        <label htmlFor={inputId} className="text-sm font-semibold text-[var(--bk-text)]">
           {label}
         </label>
       ) : null}
@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         ref={ref}
         id={inputId}
         className={cn(
-          "h-10 w-full rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 text-sm text-[var(--bk-text)] shadow-sm outline-none transition-all duration-150 placeholder:text-[#9b7c61] focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)] disabled:bg-[#f8efe3] disabled:text-[#9b7c61]",
+          "h-9 w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 text-sm text-[var(--bk-text)] outline-none transition-colors duration-150 placeholder:text-[#a1968c] focus:border-[var(--bk-border-strong)] focus:ring-0 disabled:bg-[#f3efe9] disabled:text-[#a1968c]",
           error && "border-[var(--bk-danger)] focus:border-[var(--bk-danger)] focus:ring-[var(--bk-danger-soft)]",
           className,
         )}

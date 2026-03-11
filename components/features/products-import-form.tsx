@@ -21,14 +21,15 @@ interface PreviewRow {
 }
 
 function normalizeHeader(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
-function getValueByHeader(row: Record<string, unknown>, headerName: string): unknown {
-  const expected = normalizeHeader(headerName);
+function getValueByHeaders(row: Record<string, unknown>, headerNames: string[]): unknown {
+  const expectedHeaders = headerNames.map(normalizeHeader);
 
   for (const [key, value] of Object.entries(row)) {
-    if (normalizeHeader(key) === expected) {
+    const normalizedKey = normalizeHeader(key);
+    if (expectedHeaders.includes(normalizedKey)) {
       return value;
     }
   }
@@ -38,16 +39,52 @@ function getValueByHeader(row: Record<string, unknown>, headerName: string): unk
 
 function toDraftRow(rawRow: Record<string, unknown>): ProductImportDraftRow {
   return {
-    code: String(getValueByHeader(rawRow, "code") ?? ""),
-    name: String(getValueByHeader(rawRow, "name") ?? ""),
-    category: String(getValueByHeader(rawRow, "category") ?? ""),
-    unitsPerBox: getValueByHeader(rawRow, "unitsPerBox") as number | string,
-    unitsPerPack: getValueByHeader(rawRow, "unitsPerPack") as number | string,
-    unit: String(getValueByHeader(rawRow, "unit") ?? ""),
-    consumptionRate: getValueByHeader(rawRow, "consumptionRate") as number | string,
-    orderMode: String(getValueByHeader(rawRow, "orderMode") ?? ""),
-    orderStep: getValueByHeader(rawRow, "orderStep") as number | string,
+    code: String(getValueByHeaders(rawRow, ["Код", "Код номенклатуры", "code"]) ?? ""),
+    name: String(getValueByHeaders(rawRow, ["Наименование", "Наименование продукта", "name"]) ?? ""),
+    category: String(getValueByHeaders(rawRow, ["Категория", "category"]) ?? ""),
+    unitsPerBox: getValueByHeaders(rawRow, ["Штук в коробке", "unitsPerBox"]) as number | string,
+    unitsPerPack: getValueByHeaders(rawRow, ["Штук в упаковке", "unitsPerPack"]) as number | string,
+    unit: String(getValueByHeaders(rawRow, ["Единица", "Ед. изм.", "unit"]) ?? ""),
+    consumptionRate: getValueByHeaders(rawRow, ["Норма расхода", "consumptionRate"]) as number | string,
+    orderMode: String(getValueByHeaders(rawRow, ["Режим заказа", "orderMode"]) ?? ""),
+    orderStep: getValueByHeaders(rawRow, ["Шаг заказа", "orderStep"]) as number | string,
   };
+}
+
+function getUnitDisplay(value: string): string {
+  const mapped = mapUnit(value);
+
+  if (mapped === "KILOGRAM") {
+    return "кг";
+  }
+
+  if (mapped === "LITER") {
+    return "л";
+  }
+
+  if (mapped === "PIECE") {
+    return "шт";
+  }
+
+  return value;
+}
+
+function getOrderModeDisplay(value: string): string {
+  const mapped = mapOrderMode(value);
+
+  if (mapped === "PACK") {
+    return "Упаковка";
+  }
+
+  if (mapped === "BOX") {
+    return "Коробка";
+  }
+
+  if (mapped === "PIECE") {
+    return "Штука";
+  }
+
+  return value;
 }
 
 export function ProductsImportForm() {
@@ -95,11 +132,11 @@ export function ProductsImportForm() {
         errors.push(parsed.error.issues[0]?.message ?? "Ошибка валидации строки");
       } else {
         if (!mapUnit(parsed.data.unit)) {
-          errors.push("Неверная единица измерения (unit)");
+          errors.push("Неверная единица измерения");
         }
 
         if (!mapOrderMode(parsed.data.orderMode)) {
-          errors.push("Неверный режим заказа (orderMode)");
+          errors.push("Неверный режим заказа");
         }
       }
 
@@ -123,7 +160,7 @@ export function ProductsImportForm() {
 
     for (const row of rows) {
       if (row.normalizedCode && (duplicatesCount.get(row.normalizedCode) ?? 0) > 1) {
-        row.errors.push("Дубликат code в файле");
+        row.errors.push("Дубликат кода в файле");
       }
     }
 
@@ -155,7 +192,7 @@ export function ProductsImportForm() {
       toast({
         type: "error",
         title: "Ошибка чтения файла",
-        description: error instanceof Error ? error.message : "Не удалось распарсить xlsx-файл",
+        description: error instanceof Error ? error.message : "Не удалось обработать табличный файл",
       });
     } finally {
       setIsParsing(false);
@@ -187,15 +224,15 @@ export function ProductsImportForm() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Импорт справочника товаров из Excel</CardTitle>
+          <CardTitle className="text-3xl">Импорт справочника товаров из табличного файла</CardTitle>
           <CardDescription>
-            Поддерживается формат .xlsx с колонками: code, name, category, unitsPerBox, unitsPerPack, unit,
-            consumptionRate, orderMode, orderStep.
+            Поддерживаются заголовки колонок на русском и английском. Рекомендуемые поля: Код, Наименование,
+            Категория, Штук в коробке, Штук в упаковке, Единица, Норма расхода, Режим заказа, Шаг заказа.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="cursor-pointer rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm font-medium text-[var(--bk-text)] hover:border-[var(--bk-border-strong)]">
+            <label className="cursor-pointer rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm font-medium text-[var(--bk-text)] hover:border-[var(--bk-border-strong)]">
               Выбрать файл
               <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="sr-only" />
             </label>
@@ -205,7 +242,7 @@ export function ProductsImportForm() {
           </div>
           {fileName ? <p className="text-sm text-[var(--bk-text-muted)]">Файл: {fileName}</p> : null}
           {isParsing ? (
-            <div className="space-y-2 rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
+            <div className="space-y-2 rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] p-3">
               <Skeleton className="h-5 w-48" />
               <Skeleton className="h-9 w-full" />
               <Skeleton className="h-9 w-full" />
@@ -226,7 +263,7 @@ export function ProductsImportForm() {
           ) : (
             <EmptyState
               title="Нет данных для предпросмотра"
-              description="Загрузите xlsx-файл со справочником товаров, чтобы увидеть строки перед импортом."
+              description="Загрузите табличный файл со справочником товаров, чтобы увидеть строки перед импортом."
             />
           )}
         </CardContent>
@@ -235,7 +272,7 @@ export function ProductsImportForm() {
       {report ? (
         <Card>
           <CardHeader>
-            <CardTitle>Отчёт по импорту</CardTitle>
+            <CardTitle className="text-2xl">Отчёт по импорту</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 md:grid-cols-3">
@@ -250,38 +287,38 @@ export function ProductsImportForm() {
       {previewRows.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Предпросмотр перед импортом</CardTitle>
+            <CardTitle className="text-2xl">Предпросмотр перед импортом</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-[65vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)]">
+            <div className="max-h-[65vh] overflow-auto rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)]">
               <table className="min-w-[1280px] w-full border-collapse text-sm">
-                <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)] shadow-sm">
+                <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)]">
                   <tr>
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Строка</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">code</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">name</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">category</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unitsPerBox</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unitsPerPack</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">unit</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">consumptionRate</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">orderMode</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">orderStep</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Код</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Наименование</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Категория</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Штук в коробке</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Штук в упаковке</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Единица</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Норма расхода</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Режим заказа</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Шаг заказа</th>
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Статус</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((row) => (
-                    <tr key={`${row.rowNumber}-${row.normalizedCode}`} className="border-t border-[var(--bk-border)] odd:bg-[#fffdfa]">
+                    <tr key={`${row.rowNumber}-${row.normalizedCode}`} className="border-t border-[var(--bk-border)] odd:bg-[#fdfbf8]">
                       <td className="px-3 py-2">{row.rowNumber}</td>
                       <td className="px-3 py-2 font-mono text-xs">{row.draft.code}</td>
                       <td className="px-3 py-2">{row.draft.name}</td>
                       <td className="px-3 py-2">{row.draft.category}</td>
                       <td className="px-3 py-2 text-right">{String(row.draft.unitsPerBox)}</td>
                       <td className="px-3 py-2 text-right">{String(row.draft.unitsPerPack)}</td>
-                      <td className="px-3 py-2">{row.draft.unit}</td>
+                      <td className="px-3 py-2">{getUnitDisplay(String(row.draft.unit))}</td>
                       <td className="px-3 py-2 text-right">{String(row.draft.consumptionRate)}</td>
-                      <td className="px-3 py-2">{row.draft.orderMode}</td>
+                      <td className="px-3 py-2">{getOrderModeDisplay(String(row.draft.orderMode))}</td>
                       <td className="px-3 py-2 text-right">{String(row.draft.orderStep)}</td>
                       <td className="px-3 py-2">
                         {row.errors.length > 0 ? (
@@ -289,7 +326,7 @@ export function ProductsImportForm() {
                             {row.errors.join("; ")}
                           </Badge>
                         ) : (
-                          <Badge variant="success">OK</Badge>
+                          <Badge variant="success">Корректно</Badge>
                         )}
                       </td>
                     </tr>

@@ -38,17 +38,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const toast = useCallback(
     (input: ToastInput) => {
       const id = crypto.randomUUID();
-      const nextToast: ToastRecord = {
-        id,
-        type: input.type ?? "info",
-        title: input.title,
-        description: input.description,
-      };
+      setToasts((current) => [
+        ...current,
+        {
+          id,
+          type: input.type ?? "info",
+          title: input.title,
+          description: input.description,
+        },
+      ]);
 
-      setToasts((current) => [...current, nextToast]);
-
-      const durationMs = input.durationMs ?? 3000;
-      setTimeout(() => dismiss(id), durationMs);
+      setTimeout(() => dismiss(id), input.durationMs ?? 3000);
     },
     [dismiss],
   );
@@ -103,18 +103,18 @@ const toastStyles: Record<ToastType, string> = {
 };
 
 const toastIcons: Record<ToastType, string> = {
-  info: "i",
-  success: "ok",
+  info: "и",
+  success: "✓",
   error: "!",
 };
 
 export function Toast({ type, title, description, onClose }: ToastProps) {
   return (
-    <div className="pointer-events-auto animate-[toast-in_0.2s_ease-out] rounded-xl border shadow-lg">
-      <div className={cn("rounded-xl border p-3", toastStyles[type])}>
+    <div className="pointer-events-auto animate-[toast-in_0.2s_ease-out] rounded-md border shadow-md">
+      <div className={cn("rounded-md border p-3", toastStyles[type])}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">
-            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/85 px-1 text-xs font-black uppercase text-[var(--bk-text-muted)]">
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold uppercase text-[var(--bk-text-muted)]">
               {toastIcons[type]}
             </span>
             <div className="space-y-1">

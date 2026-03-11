@@ -22,10 +22,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <Card className="w-full max-w-md border-[var(--bk-border)] bg-white">
+      <Card className="w-full max-w-md bg-[var(--bk-panel)]">
         <CardHeader>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--bk-primary)]">Burger King Supply</p>
-          <CardTitle>Вход в систему</CardTitle>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--bk-primary)]">Система поставок Бургер Кинг</p>
+          <CardTitle className="text-3xl">Вход в систему</CardTitle>
           <CardDescription>Введите логин и пароль сотрудника для доступа к расчётам поставки.</CardDescription>
         </CardHeader>
         <CardContent>

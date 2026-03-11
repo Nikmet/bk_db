@@ -187,7 +187,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
         <CardContent className="space-y-4">
           <EmptyState
             title="Нет товаров для ввода"
-            description="Перейдите в раздел импорта товаров и загрузите актуальный Excel-справочник."
+            description="Перейдите в раздел импорта товаров и загрузите актуальный табличный справочник."
           />
           <div className="flex justify-end">
             <Button type="button" onClick={() => router.push("/dashboard/products/import")}>
@@ -202,7 +202,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
   return (
     <Card>
       <CardHeader className="gap-4">
-        <CardTitle>Ввод остатков продуктов</CardTitle>
+        <CardTitle className="text-4xl">Ввод остатков продуктов</CardTitle>
         <CardDescription>
           Пустые поля автоматически считаются как 0. Общее количество рассчитывается мгновенно на основе коробок,
           упаковок и единиц.
@@ -230,16 +230,16 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
       <CardContent>
         <form id="inventory-session-form" onSubmit={onSubmit} className="space-y-3">
           {isPending ? (
-            <div className="space-y-2 rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
+            <div className="space-y-2 rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] p-4">
               <Skeleton className="h-8 w-52" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : null}
-          <div className="max-h-[70vh] overflow-auto rounded-2xl border border-[var(--bk-border)] bg-[var(--bk-surface)] shadow-sm">
+          <div className="max-h-[72vh] overflow-auto rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)]">
             <table className="min-w-[1320px] w-full border-collapse text-sm">
-              <thead className="sticky top-0 z-20 bg-[var(--bk-surface-strong)] text-[var(--bk-text)] shadow-sm">
+              <thead className="sticky top-0 z-20 bg-[var(--bk-surface-strong)] text-[var(--bk-text)]">
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Код номенклатуры</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Наименование продукта</th>
@@ -262,7 +262,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                 ) : (
                   filteredCategories.map((category) => (
                     <Fragment key={category.id}>
-                      <tr className="bg-[var(--bk-surface-strong)]">
+                      <tr className="bg-[var(--bk-surface-soft)]">
                         <td colSpan={9} className="px-3 py-2 text-sm font-semibold text-[var(--bk-text)]">
                           {category.name}
                         </td>
@@ -281,7 +281,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                           toNumber(rowValue?.pieceCount);
 
                         return (
-                          <tr key={product.id} className="border-t border-[var(--bk-border)] odd:bg-[#fffdfa]">
+                          <tr key={product.id} className="border-t border-[var(--bk-border)] odd:bg-[#fdfbf8]">
                             <td className="px-3 py-2 font-mono text-xs">{product.code}</td>
                             <td className="px-3 py-2">{product.name}</td>
                             <td className="px-3 py-2 text-right">{product.unitsPerBox}</td>
@@ -292,7 +292,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
+                                className="h-8 w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-colors focus:border-[var(--bk-border-strong)] focus:ring-0"
                                 {...form.register(`rows.${rowIndex}.boxCount`, {
                                   setValueAs: parseCountInput,
                                 })}
@@ -303,7 +303,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
+                                className="h-8 w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-colors focus:border-[var(--bk-border-strong)] focus:ring-0"
                                 {...form.register(`rows.${rowIndex}.packCount`, {
                                   setValueAs: parseCountInput,
                                 })}
@@ -314,7 +314,7 @@ export function InventoryTableForm({ categories }: InventoryTableFormProps) {
                                 type="number"
                                 min={0}
                                 step={1}
-                                className="h-9 w-full rounded-lg border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-all focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
+                                className="h-8 w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-2 text-right text-sm outline-none transition-colors focus:border-[var(--bk-border-strong)] focus:ring-0"
                                 {...form.register(`rows.${rowIndex}.pieceCount`, {
                                   setValueAs: parseCountInput,
                                 })}

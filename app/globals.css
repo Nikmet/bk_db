@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --bk-bg: #fff8ed;
-  --bk-bg-muted: #fff3e1;
+  --bk-bg: #f3eee8;
+  --bk-bg-muted: #f8f4ef;
   --bk-surface: #ffffff;
-  --bk-surface-soft: #fff8ef;
-  --bk-surface-strong: #ffe9cc;
-  --bk-border: #f0d8c0;
-  --bk-border-strong: #deb38d;
-  --bk-text: #2c1b10;
-  --bk-text-muted: #71523d;
+  --bk-surface-soft: #f3efea;
+  --bk-surface-strong: #e9dfd4;
+  --bk-panel: #f6f4f1;
+  --bk-border: #ddd7d0;
+  --bk-border-strong: #cfc5ba;
+  --bk-text: #3a2f29;
+  --bk-text-muted: #8f7f72;
   --bk-primary: #d62300;
-  --bk-primary-strong: #a61a00;
-  --bk-primary-soft: #ffe2da;
-  --bk-orange: #ff8f1c;
-  --bk-orange-soft: #fff0da;
+  --bk-primary-strong: #b41d00;
+  --bk-primary-soft: #ffe5de;
+  --bk-orange: #ffb349;
+  --bk-orange-soft: #fff1df;
   --bk-brown: #5d3017;
-  --bk-success: #0f8f58;
-  --bk-success-soft: #d8f6e8;
-  --bk-warning: #a25f00;
-  --bk-warning-soft: #ffedc9;
-  --bk-danger: #b3251d;
-  --bk-danger-soft: #fde2e0;
-  --bk-focus: #ffb379;
+  --bk-success: #2c8a5a;
+  --bk-success-soft: #e4f4eb;
+  --bk-warning: #9c6a00;
+  --bk-warning-soft: #fff0d0;
+  --bk-danger: #b9352f;
+  --bk-danger-soft: #fde8e7;
+  --bk-focus: #ef876d;
 }
 
 * {
@@ -38,19 +39,16 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 0 0, #fff0d9 0%, transparent 34%),
-    radial-gradient(circle at 100% 100%, #ffe3d7 0%, transparent 30%),
-    var(--bk-bg);
+  background: var(--bk-bg);
   color: var(--bk-text);
   font-family: var(--font-rubik), "Segoe UI", sans-serif;
-  line-height: 1.45;
+  line-height: 1.4;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
   background: var(--bk-primary-soft);
-  color: var(--bk-brown);
+  color: var(--bk-text);
 }
 
 a {
@@ -76,4 +74,48 @@ pre {
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body {
+    color: #111;
+    font-size: 11px;
+    line-height: 1.25;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-order-document {
+    color: #111;
+  }
+
+  .print-order-document table {
+    width: 100%;
+    min-width: 0 !important;
+    border-collapse: collapse;
+  }
+
+  .print-order-document thead {
+    display: table-header-group;
+  }
+
+  .print-order-document tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-order-document th,
+  .print-order-document td {
+    border-color: #bdb7b0 !important;
+  }
 }

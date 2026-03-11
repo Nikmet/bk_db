@@ -68,7 +68,7 @@ export function CalculationParamsForm() {
           id="notes"
           name="notes"
           rows={3}
-          className="w-full rounded-xl border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm text-[var(--bk-text)] shadow-sm outline-none transition focus:border-[var(--bk-orange)] focus:ring-2 focus:ring-[var(--bk-orange-soft)]"
+          className="w-full rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 py-2 text-sm text-[var(--bk-text)] outline-none transition-colors focus:border-[var(--bk-border-strong)]"
           placeholder="Например: ожидается пик по доставке в вечерние часы"
         />
       </div>

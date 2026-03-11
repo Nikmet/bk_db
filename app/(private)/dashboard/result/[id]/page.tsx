@@ -1,6 +1,8 @@
 ﻿import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 
 import { OrderResultView } from "@/components/features/order-result-view";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface ResultByIdPageProps {
@@ -9,6 +11,7 @@ interface ResultByIdPageProps {
 
 export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
   const { id } = await params;
+  const session = await getServerSession(authOptions);
 
   const calculation = await prisma.orderCalculation.findUnique({
     where: {
@@ -62,5 +65,5 @@ export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
     })),
   };
 
-  return <OrderResultView calculation={viewData} />;
+  return <OrderResultView calculation={viewData} managerUsername={session?.user?.username ?? "менеджер"} />;
 }
