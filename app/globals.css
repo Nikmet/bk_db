@@ -99,7 +99,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #111;
   }
 
+  .print-inventory-blank {
+    color: #111;
+  }
+
   .print-order-document table {
+    width: 100%;
+    min-width: 0 !important;
+    border-collapse: collapse;
+  }
+
+  .print-inventory-blank table {
     width: 100%;
     min-width: 0 !important;
     border-collapse: collapse;
@@ -109,13 +119,27 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: table-header-group;
   }
 
+  .print-inventory-blank thead {
+    display: table-header-group;
+  }
+
   .print-order-document tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-inventory-blank tr {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
   .print-order-document th,
   .print-order-document td {
+    border-color: #bdb7b0 !important;
+  }
+
+  .print-inventory-blank th,
+  .print-inventory-blank td {
     border-color: #bdb7b0 !important;
   }
 }

@@ -1,4 +1,5 @@
-﻿import { redirect } from "next/navigation";
+import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { LoginForm } from "@/components/auth/login-form";
@@ -24,7 +25,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md bg-[var(--bk-panel)]">
         <CardHeader>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--bk-primary)]">Система поставок Бургер Кинг</p>
+          <div className="flex items-center">
+            <Image
+              src="/logo.svg"
+              alt="Burger King Supply"
+              width={240}
+              height={46}
+              priority
+              className="h-10 w-auto object-contain"
+            />
+          </div>
           <CardTitle className="text-3xl">Вход в систему</CardTitle>
           <CardDescription>Введите логин и пароль сотрудника для доступа к расчётам поставки.</CardDescription>
         </CardHeader>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 
-type Unit = "PIECE" | "KILOGRAM" | "LITER";
 type SortDirection = "asc" | "desc";
 
 interface ResultItem {
@@ -21,7 +20,7 @@ interface ResultItem {
   safetyStockQuantity: number;
   recommendedOrderQty: number;
   recommendedOrderRoundedQty: number;
-  unit: Unit;
+  unitsPerBox: number;
 }
 
 interface ResultViewData {
@@ -37,20 +36,16 @@ interface OrderResultViewProps {
   managerUsername: string;
 }
 
-function getStatusLabel(status: "DRAFT" | "READY"): string {
-  return status === "READY" ? "Готово" : "Черновик";
+interface ResultItemInBoxes extends ResultItem {
+  currentStockBoxes: number | null;
+  predictedConsumptionBoxes: number | null;
+  safetyStockQuantityBoxes: number | null;
+  recommendedOrderQtyBoxes: number | null;
+  recommendedOrderRoundedQtyBoxes: number | null;
 }
 
-function getUnitLabel(unit: Unit): string {
-  if (unit === "KILOGRAM") {
-    return "кг";
-  }
-
-  if (unit === "LITER") {
-    return "л";
-  }
-
-  return "шт";
+function getStatusLabel(status: "DRAFT" | "READY"): string {
+  return status === "READY" ? "Готово" : "Черновик";
 }
 
 function formatDate(value: string): string {
@@ -63,17 +58,42 @@ function formatDate(value: string): string {
   return date.toLocaleString("ru-RU");
 }
 
+function toBoxes(value: number, unitsPerBox: number): number | null {
+  if (!Number.isFinite(unitsPerBox) || unitsPerBox <= 0) {
+    return null;
+  }
+
+  return value / unitsPerBox;
+}
+
+function formatBoxValue(value: number | null): string {
+  if (value === null) {
+    return "—";
+  }
+
+  return value.toFixed(2);
+}
+
 export function OrderResultView({ calculation, managerUsername }: OrderResultViewProps) {
   const router = useRouter();
   const [onlyOrderItems, setOnlyOrderItems] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const processedItems = useMemo(() => {
-    const filtered = onlyOrderItems
-      ? calculation.items.filter((item) => item.recommendedOrderRoundedQty > 0)
-      : calculation.items;
+    const mapped: ResultItemInBoxes[] = calculation.items.map((item) => ({
+      ...item,
+      currentStockBoxes: toBoxes(item.currentStock, item.unitsPerBox),
+      predictedConsumptionBoxes: toBoxes(item.predictedConsumption, item.unitsPerBox),
+      safetyStockQuantityBoxes: toBoxes(item.safetyStockQuantity, item.unitsPerBox),
+      recommendedOrderQtyBoxes: toBoxes(item.recommendedOrderQty, item.unitsPerBox),
+      recommendedOrderRoundedQtyBoxes: toBoxes(item.recommendedOrderRoundedQty, item.unitsPerBox),
+    }));
 
-    const sorted = [...filtered].sort((a, b) => {
+    const filtered = onlyOrderItems
+      ? mapped.filter((item) => (item.recommendedOrderRoundedQtyBoxes ?? 0) > 0)
+      : mapped;
+
+    return [...filtered].sort((a, b) => {
       const categoryA = a.categoryName.toLowerCase();
       const categoryB = b.categoryName.toLowerCase();
 
@@ -85,23 +105,21 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
 
       return a.code.localeCompare(b.code, "ru");
     });
-
-    return sorted;
   }, [calculation.items, onlyOrderItems, sortDirection]);
 
-  const totalRounded = processedItems.reduce((sum, item) => sum + item.recommendedOrderRoundedQty, 0);
+  const totalRounded = processedItems.reduce((sum, item) => sum + (item.recommendedOrderRoundedQtyBoxes ?? 0), 0);
 
   const exportCsv = () => {
     const headers = [
       "Категория",
       "Код номенклатуры",
       "Наименование продукта",
-      "Текущий остаток",
-      "Прогнозируемый расход",
-      "Страховой запас",
-      "Рекомендуемое количество",
-      "Округлённое количество",
-      "Единица измерения",
+      "Текущий остаток, кор.",
+      "Прогнозируемый расход, кор.",
+      "Страховой запас, кор.",
+      "Рекомендуемое количество, кор.",
+      "Округлённое количество, кор.",
+      "Единица",
     ];
 
     const rows = processedItems.map((item) =>
@@ -109,12 +127,12 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
         item.categoryName,
         item.code,
         item.name,
-        item.currentStock.toFixed(2),
-        item.predictedConsumption.toFixed(2),
-        item.safetyStockQuantity.toFixed(2),
-        item.recommendedOrderQty.toFixed(2),
-        item.recommendedOrderRoundedQty.toFixed(2),
-        getUnitLabel(item.unit),
+        item.currentStockBoxes?.toFixed(2) ?? "",
+        item.predictedConsumptionBoxes?.toFixed(2) ?? "",
+        item.safetyStockQuantityBoxes?.toFixed(2) ?? "",
+        item.recommendedOrderQtyBoxes?.toFixed(2) ?? "",
+        item.recommendedOrderRoundedQtyBoxes?.toFixed(2) ?? "",
+        item.unitsPerBox > 0 ? "кор." : "",
       ].join(";"),
     );
 
@@ -138,7 +156,7 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
             <div>
               <CardTitle className="text-3xl print:text-2xl">Результат расчёта заказа</CardTitle>
               <CardDescription className="print:text-xs print:text-[#4a4a4a]">
-                Расчёт от {formatDate(calculation.calculatedAt)} • Точка: {calculation.location ?? "не указана"}
+                Расчёт от {formatDate(calculation.calculatedAt)}. Точка: {calculation.location ?? "не указана"}
               </CardDescription>
             </div>
             <Badge variant={calculation.status === "READY" ? "success" : "warning"} className="print:hidden">
@@ -148,6 +166,9 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
               Статус: {getStatusLabel(calculation.status)}
             </p>
           </div>
+          <p className="text-sm text-[var(--bk-text-muted)] print:text-[10px] print:text-[#555]">
+            Все числовые значения в таблице указаны в коробках.
+          </p>
           <div className="print:hidden grid gap-3 md:grid-cols-[auto_auto_1fr_auto_auto_auto] md:items-center">
             <label className="inline-flex items-center gap-2 text-sm font-medium text-[var(--bk-text)]">
               <input
@@ -156,7 +177,7 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
                 onChange={(event) => setOnlyOrderItems(event.target.checked)}
                 className="h-4 w-4 rounded border-[var(--bk-border)] accent-[var(--bk-primary)]"
               />
-              показывать только товары к заказу
+              Показывать только товары к заказу
             </label>
 
             <label className="inline-flex items-center gap-2 text-sm">
@@ -188,7 +209,7 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
         <CardContent className="print:px-0 print:pb-0">
           <div className="mb-3 flex items-center justify-between text-sm text-[var(--bk-text-muted)] print:mb-2 print:text-xs print:text-[#555]">
             <p>Позиций в таблице: {processedItems.length}</p>
-            <p className="font-semibold">Итого округлённое количество: {totalRounded.toFixed(2)}</p>
+            <p className="font-semibold">Итого округлённое количество: {totalRounded.toFixed(2)} кор.</p>
           </div>
 
           {processedItems.length === 0 ? (
@@ -201,14 +222,30 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
               <table className="min-w-[1240px] w-full border-collapse text-sm print:min-w-0 print:table-fixed print:text-[10px]">
                 <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)] print:static">
                   <tr>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Код номенклатуры</th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Наименование продукта</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Текущий остаток</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Прогнозируемый расход</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Страховой запас</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Рекомендуемое количество</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Округлённое количество</th>
-                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">Единица измерения</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Код номенклатуры
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Наименование продукта
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Текущий остаток, кор.
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Прогнозируемый расход, кор.
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Страховой запас, кор.
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Рекомендуемое количество, кор.
+                    </th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Округлённое количество, кор.
+                    </th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                      Единица
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,14 +256,24 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
                         <p className="font-medium">{item.name}</p>
                         <p className="text-xs text-[var(--bk-text-muted)] print:hidden">{item.categoryName}</p>
                       </td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">{item.currentStock.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">{item.predictedConsumption.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">{item.safetyStockQuantity.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">{item.recommendedOrderQty.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right font-semibold text-[var(--bk-primary-strong)] print:px-1.5 print:py-1 print:text-[9px]">
-                        {item.recommendedOrderRoundedQty.toFixed(2)}
+                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
+                        {formatBoxValue(item.currentStockBoxes)}
                       </td>
-                      <td className="px-3 py-2 text-center print:px-1.5 print:py-1 print:text-[9px]">{getUnitLabel(item.unit)}</td>
+                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
+                        {formatBoxValue(item.predictedConsumptionBoxes)}
+                      </td>
+                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
+                        {formatBoxValue(item.safetyStockQuantityBoxes)}
+                      </td>
+                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
+                        {formatBoxValue(item.recommendedOrderQtyBoxes)}
+                      </td>
+                      <td className="px-3 py-2 text-right font-semibold text-[var(--bk-primary-strong)] print:px-1.5 print:py-1 print:text-[9px]">
+                        {formatBoxValue(item.recommendedOrderRoundedQtyBoxes)}
+                      </td>
+                      <td className="px-3 py-2 text-center print:px-1.5 print:py-1 print:text-[9px]">
+                        {item.unitsPerBox > 0 ? "кор." : "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

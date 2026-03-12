@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/dashboard/inventory", label: "Остатки" },
-  { href: "/dashboard/products/import", label: "Импорт товаров" },
   { href: "/dashboard/forecast", label: "Прогноз" },
   { href: "/dashboard/result", label: "Результат" },
 ];

@@ -29,7 +29,7 @@ export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
             select: {
               code: true,
               name: true,
-              unit: true,
+              unitsPerBox: true,
               category: {
                 select: {
                   name: true,
@@ -61,7 +61,7 @@ export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
       safetyStockQuantity: item.safetyStockQuantity,
       recommendedOrderQty: item.recommendedOrderQty,
       recommendedOrderRoundedQty: item.recommendedOrderRoundedQty,
-      unit: item.product.unit,
+      unitsPerBox: item.product.unitsPerBox,
     })),
   };
 

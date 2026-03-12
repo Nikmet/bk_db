@@ -103,8 +103,8 @@ const toastStyles: Record<ToastType, string> = {
 };
 
 const toastIcons: Record<ToastType, string> = {
-  info: "и",
-  success: "✓",
+  info: "i",
+  success: "Усп",
   error: "!",
 };
 

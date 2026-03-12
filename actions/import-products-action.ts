@@ -1,11 +1,12 @@
-﻿"use server";
+"use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { productImportRowSchema, type ProductImportDraftRow } from "@/lib/validation/product-import";
 import { buildCategoryCode, mapOrderMode, mapUnit, normalizeProductCode } from "@/lib/utils/product-import";
+import { productImportRowSchema, type ProductImportDraftRow } from "@/lib/validation/product-import";
 
 export interface ImportProductsActionResult {
   ok: boolean;
@@ -38,6 +39,16 @@ export async function importProductsAction(rows: ProductImportDraftRow[]): Promi
     return {
       ok: false,
       message: "Сессия истекла. Выполните вход повторно.",
+      added: 0,
+      updated: 0,
+      skipped: rows.length,
+    };
+  }
+
+  if (session.user.role !== "ADMIN") {
+    return {
+      ok: false,
+      message: "Недостаточно прав для импорта товаров.",
       added: 0,
       updated: 0,
       skipped: rows.length,
@@ -128,7 +139,7 @@ export async function importProductsAction(rows: ProductImportDraftRow[]): Promi
     };
   }
 
-  return prisma.$transaction(
+  const result = await prisma.$transaction(
     async (tx) => {
       let added = 0;
       let updated = 0;
@@ -155,9 +166,7 @@ export async function importProductsAction(rows: ProductImportDraftRow[]): Promi
         },
       });
 
-      const categoryByName = new Map(
-        existingCategories.map((category) => [category.name.trim().toLowerCase(), category]),
-      );
+      const categoryByName = new Map(existingCategories.map((category) => [category.name.trim().toLowerCase(), category]));
       const usedCategoryCodes = new Set(existingCategories.map((category) => category.code));
 
       for (const row of importRows) {
@@ -246,4 +255,12 @@ export async function importProductsAction(rows: ProductImportDraftRow[]): Promi
       timeout: 120_000,
     },
   );
+
+  if (result.ok) {
+    revalidatePath("/dashboard/products");
+    revalidatePath("/dashboard/products/import");
+    revalidatePath("/dashboard/inventory");
+  }
+
+  return result;
 }
