@@ -9,8 +9,6 @@ export interface CalculateOrderActionResult {
   orderCalculationId?: string;
 }
 
-c
-
 export async function calculateOrderAction(values: ForecastFormValues): Promise<CalculateOrderActionResult> {
   const parsed = forecastFormSchema.safeParse(values);
 
