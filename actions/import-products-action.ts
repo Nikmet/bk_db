@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildCategoryCode, mapOrderMode, mapUnit, normalizeProductCode } from "@/lib/utils/product-import";
 import { productImportRowSchema, type ProductImportDraftRow } from "@/lib/validation/product-import";
@@ -33,28 +31,6 @@ function getUniqueCategoryCode(baseCode: string, usedCodes: Set<string>): string
 }
 
 export async function importProductsAction(rows: ProductImportDraftRow[]): Promise<ImportProductsActionResult> {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return {
-      ok: false,
-      message: "Сессия истекла. Выполните вход повторно.",
-      added: 0,
-      updated: 0,
-      skipped: rows.length,
-    };
-  }
-
-  if (session.user.role !== "ADMIN") {
-    return {
-      ok: false,
-      message: "Недостаточно прав для импорта товаров.",
-      added: 0,
-      updated: 0,
-      skipped: rows.length,
-    };
-  }
-
   if (!Array.isArray(rows) || rows.length === 0) {
     return {
       ok: false,

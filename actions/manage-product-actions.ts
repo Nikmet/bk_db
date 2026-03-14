@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   productManagementSchema,
@@ -15,16 +13,6 @@ export interface ManageProductActionResult {
   message: string;
 }
 
-async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
-    return null;
-  }
-
-  return session;
-}
-
 function revalidateProductPaths() {
   revalidatePath("/dashboard/products");
   revalidatePath("/dashboard/products/import");
@@ -32,15 +20,6 @@ function revalidateProductPaths() {
 }
 
 export async function createProductAction(values: ProductManagementValues): Promise<ManageProductActionResult> {
-  const session = await requireAdmin();
-
-  if (!session) {
-    return {
-      ok: false,
-      message: "Недостаточно прав для изменения справочника товаров.",
-    };
-  }
-
   const parsed = productManagementSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -101,15 +80,6 @@ export async function updateProductAction(
   productId: string,
   values: ProductManagementValues,
 ): Promise<ManageProductActionResult> {
-  const session = await requireAdmin();
-
-  if (!session) {
-    return {
-      ok: false,
-      message: "Недостаточно прав для изменения справочника товаров.",
-    };
-  }
-
   const parsed = productManagementSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -188,15 +158,6 @@ export async function updateProductAction(
 }
 
 export async function deactivateProductAction(productId: string): Promise<ManageProductActionResult> {
-  const session = await requireAdmin();
-
-  if (!session) {
-    return {
-      ok: false,
-      message: "Недостаточно прав для изменения справочника товаров.",
-    };
-  }
-
   const product = await prisma.product.findUnique({
     where: {
       id: productId,

@@ -1,9 +1,7 @@
 ﻿"use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { inventoryFormSchema, type InventoryFormValues } from "@/lib/validation/inventory";
 
@@ -14,15 +12,6 @@ export interface SaveInventorySessionResult {
 }
 
 export async function saveInventorySessionAction(values: InventoryFormValues): Promise<SaveInventorySessionResult> {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return {
-      ok: false,
-      message: "Сессия истекла. Выполните вход повторно.",
-    };
-  }
-
   const parsed = inventoryFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -84,7 +73,6 @@ export async function saveInventorySessionAction(values: InventoryFormValues): P
       data: {
         sessionDate: new Date(),
         location: "Burger King - Основной склад",
-        createdById: session.user.id,
       },
     });
 

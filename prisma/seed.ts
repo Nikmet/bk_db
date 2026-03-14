@@ -1,12 +1,10 @@
 ﻿import { OrderMode, PrismaClient, Unit, UserRole } from "@prisma/client";
-import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function seedUser() {
   const username = "admin";
-  const rawPassword = "admin123";
-  const passwordHash = await hash(rawPassword, 10);
+  const passwordHash = "auth-disabled";
 
   const user = await prisma.user.upsert({
     where: { username },
@@ -167,7 +165,7 @@ async function main() {
   await seedProducts(categoryMap);
 
   console.log(`Seed user created: ${user.username}`);
-  console.log("Seed credentials: admin / admin123");
+  console.log("Auth is disabled, password is not used.");
   console.log("Seed categories created: Фризер, Кулер, Сухой сток");
   console.log("Seed products created: 6 items");
 }

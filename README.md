@@ -8,15 +8,14 @@
 - TypeScript
 - Tailwind CSS
 - Prisma + PostgreSQL
-- NextAuth (Credentials)
 - Bun
 
 ## Основные страницы
 
-- `/login` — вход в систему
 - `/dashboard/inventory` — ввод остатков
 - `/dashboard/forecast` — параметры прогноза и запуск расчёта
 - `/dashboard/result/[id]` — результат расчёта
+- `/dashboard/products` — справочник товаров
 - `/dashboard/products/import` — импорт справочника товаров
 
 ## Локальный запуск
@@ -40,7 +39,7 @@ bun prisma:migrate
 bun prisma:generate
 ```
 
-4. Создайте тестового пользователя:
+4. Заполните тестовые данные:
 
 ```bash
 bun prisma:seed
@@ -62,24 +61,19 @@ bun run build
 ## Переменные окружения
 
 - `DATABASE_URL` — строка подключения PostgreSQL
-- `NEXTAUTH_URL` — базовый URL приложения
-- `NEXTAUTH_SECRET` — секрет для подписи JWT/сессии
 
 ## Деплой на Vercel
 
-Проект уже подготовлен к деплою:
+Проект подготовлен к деплою:
 
-- добавлен `vercel.json` c Bun-командами сборки;
+- добавлен `vercel.json` с Bun-командами сборки;
 - добавлен `.vercelignore` для уменьшения deployment context;
 - `postinstall` выполняет `prisma generate`.
 
 ### Вариант 1: через интерфейс Vercel
 
 1. Импортируйте репозиторий в Vercel.
-2. В `Environment Variables` добавьте:
-   - `DATABASE_URL`
-   - `NEXTAUTH_URL` (например `https://<project>.vercel.app`)
-   - `NEXTAUTH_SECRET`
+2. В `Environment Variables` добавьте `DATABASE_URL`.
 3. Запустите Deploy.
 
 ### Вариант 2: через Vercel CLI

@@ -1,8 +1,5 @@
 ﻿"use server";
 
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/lib/auth";
 import { calculateAndSaveOrder } from "@/lib/services/calculate-order";
 import { forecastFormSchema, type ForecastFormValues } from "@/lib/validation/forecast";
 
@@ -12,16 +9,9 @@ export interface CalculateOrderActionResult {
   orderCalculationId?: string;
 }
 
+c
+
 export async function calculateOrderAction(values: ForecastFormValues): Promise<CalculateOrderActionResult> {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return {
-      ok: false,
-      message: "Сессия истекла. Выполните вход повторно.",
-    };
-  }
-
   const parsed = forecastFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -39,7 +29,6 @@ export async function calculateOrderAction(values: ForecastFormValues): Promise<
       turnoverToNearestDelivery: parsed.data.turnoverBeforeNearest,
       turnoverToNextDelivery: parsed.data.turnoverBeforeNext,
       safetyStockDays: parsed.data.safetyStockDays,
-      userId: session.user.id,
     });
 
     return {

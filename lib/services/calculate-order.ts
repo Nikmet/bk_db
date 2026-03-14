@@ -1,6 +1,5 @@
 ﻿import type { OrderMode, Prisma } from "@prisma/client";
 
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface CalculateOrderItemInput {
@@ -29,7 +28,6 @@ export interface CalculateOrderServiceInput {
   turnoverToNearestDelivery: number;
   turnoverToNextDelivery: number;
   safetyStockDays: number;
-  userId: string;
 }
 
 export interface CalculateOrderServiceResult {
@@ -145,7 +143,6 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
           turnoverToNextDelivery: input.turnoverToNextDelivery,
           safetyStockDays: input.safetyStockDays,
         }),
-        createdById: input.userId,
       },
     });
 
@@ -153,7 +150,6 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
       data: {
         forecastSessionId: forecastSession.id,
         inventorySessionId: latestInventorySession.id,
-        createdById: input.userId,
         status: "READY",
         calculatedAt: new Date(),
       },

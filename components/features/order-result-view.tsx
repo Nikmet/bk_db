@@ -33,7 +33,6 @@ interface ResultViewData {
 
 interface OrderResultViewProps {
   calculation: ResultViewData;
-  managerUsername: string;
 }
 
 interface ResultItemInBoxes extends ResultItem {
@@ -68,13 +67,13 @@ function toBoxes(value: number, unitsPerBox: number): number | null {
 
 function formatBoxValue(value: number | null): string {
   if (value === null) {
-    return "—";
+    return "-";
   }
 
   return value.toFixed(2);
 }
 
-export function OrderResultView({ calculation, managerUsername }: OrderResultViewProps) {
+export function OrderResultView({ calculation }: OrderResultViewProps) {
   const router = useRouter();
   const [onlyOrderItems, setOnlyOrderItems] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -141,7 +140,7 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `результат-заказа-${calculation.id}.csv`;
+    link.download = `result-order-${calculation.id}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -149,27 +148,24 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
   };
 
   return (
-    <div className="print-order-document space-y-4 print:space-y-2">
-      <Card className="print:rounded-none print:border-none print:bg-white print:p-0">
-        <CardHeader className="print:mb-2 print:gap-1 print:px-0 print:pb-0 print:pt-0">
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-3xl print:text-2xl">Результат расчёта заказа</CardTitle>
-              <CardDescription className="print:text-xs print:text-[#4a4a4a]">
+              <CardTitle className="text-3xl">Результат расчёта заказа</CardTitle>
+              <CardDescription>
                 Расчёт от {formatDate(calculation.calculatedAt)}. Точка: {calculation.location ?? "не указана"}
               </CardDescription>
             </div>
-            <Badge variant={calculation.status === "READY" ? "success" : "warning"} className="print:hidden">
+            <Badge variant={calculation.status === "READY" ? "success" : "warning"}>
               {getStatusLabel(calculation.status)}
             </Badge>
-            <p className="hidden text-xs font-semibold uppercase tracking-wide text-[#444] print:block">
-              Статус: {getStatusLabel(calculation.status)}
-            </p>
           </div>
-          <p className="text-sm text-[var(--bk-text-muted)] print:text-[10px] print:text-[#555]">
+          <p className="text-sm text-[var(--bk-text-muted)]">
             Все числовые значения в таблице указаны в коробках.
           </p>
-          <div className="print:hidden grid gap-3 md:grid-cols-[auto_auto_1fr_auto_auto_auto] md:items-center">
+          <div className="grid gap-3 md:grid-cols-[auto_auto_1fr_auto_auto] md:items-center">
             <label className="inline-flex items-center gap-2 text-sm font-medium text-[var(--bk-text)]">
               <input
                 type="checkbox"
@@ -197,17 +193,14 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
             <Button type="button" variant="secondary" onClick={exportCsv}>
               Экспорт в файл
             </Button>
-            <Button type="button" variant="secondary" onClick={() => window.print()}>
-              Печатная версия
-            </Button>
             <Button type="button" onClick={() => router.push("/dashboard/forecast")}>
               Назад к параметрам
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="print:px-0 print:pb-0">
-          <div className="mb-3 flex items-center justify-between text-sm text-[var(--bk-text-muted)] print:mb-2 print:text-xs print:text-[#555]">
+        <CardContent>
+          <div className="mb-3 flex items-center justify-between text-sm text-[var(--bk-text-muted)]">
             <p>Позиций в таблице: {processedItems.length}</p>
             <p className="font-semibold">Итого округлённое количество: {totalRounded.toFixed(2)} кор.</p>
           </div>
@@ -218,32 +211,32 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
               description="Измените фильтр или выполните новый расчёт с другими параметрами."
             />
           ) : (
-            <div className="max-h-[68vh] overflow-auto rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] print:max-h-none print:overflow-visible print:rounded-none print:border-[#bdb7b0]">
-              <table className="min-w-[1240px] w-full border-collapse text-sm print:min-w-0 print:table-fixed print:text-[10px]">
-                <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)] print:static">
+            <div className="max-h-[68vh] overflow-auto rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)]">
+              <table className="min-w-[1240px] w-full border-collapse text-sm">
+                <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)]">
                   <tr>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Код номенклатуры
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Наименование продукта
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Текущий остаток, кор.
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Прогнозируемый расход, кор.
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Страховой запас, кор.
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Рекомендуемое количество, кор.
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Округлённое количество, кор.
                     </th>
-                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)] print:px-1.5 print:py-1 print:text-[9px]">
+                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
                       Единица
                     </th>
                   </tr>
@@ -251,29 +244,19 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
                 <tbody>
                   {processedItems.map((item) => (
                     <tr key={item.id} className="border-t border-[var(--bk-border)] odd:bg-[#fdfbf8]">
-                      <td className="px-3 py-2 font-mono text-xs print:px-1.5 print:py-1 print:text-[9px]">{item.code}</td>
-                      <td className="px-3 py-2 print:px-1.5 print:py-1 print:text-[9px]">
+                      <td className="px-3 py-2 font-mono text-xs">{item.code}</td>
+                      <td className="px-3 py-2">
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-xs text-[var(--bk-text-muted)] print:hidden">{item.categoryName}</p>
+                        <p className="text-xs text-[var(--bk-text-muted)]">{item.categoryName}</p>
                       </td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
-                        {formatBoxValue(item.currentStockBoxes)}
-                      </td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
-                        {formatBoxValue(item.predictedConsumptionBoxes)}
-                      </td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
-                        {formatBoxValue(item.safetyStockQuantityBoxes)}
-                      </td>
-                      <td className="px-3 py-2 text-right print:px-1.5 print:py-1 print:text-[9px]">
-                        {formatBoxValue(item.recommendedOrderQtyBoxes)}
-                      </td>
-                      <td className="px-3 py-2 text-right font-semibold text-[var(--bk-primary-strong)] print:px-1.5 print:py-1 print:text-[9px]">
+                      <td className="px-3 py-2 text-right">{formatBoxValue(item.currentStockBoxes)}</td>
+                      <td className="px-3 py-2 text-right">{formatBoxValue(item.predictedConsumptionBoxes)}</td>
+                      <td className="px-3 py-2 text-right">{formatBoxValue(item.safetyStockQuantityBoxes)}</td>
+                      <td className="px-3 py-2 text-right">{formatBoxValue(item.recommendedOrderQtyBoxes)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-[var(--bk-primary-strong)]">
                         {formatBoxValue(item.recommendedOrderRoundedQtyBoxes)}
                       </td>
-                      <td className="px-3 py-2 text-center print:px-1.5 print:py-1 print:text-[9px]">
-                        {item.unitsPerBox > 0 ? "кор." : "—"}
-                      </td>
+                      <td className="px-3 py-2 text-center">{item.unitsPerBox > 0 ? "кор." : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -281,23 +264,7 @@ export function OrderResultView({ calculation, managerUsername }: OrderResultVie
             </div>
           )}
 
-          <div className="hidden border-t border-[#bdb7b0] pt-4 print:block">
-            <div className="ml-auto w-[380px] space-y-3">
-              <p className="text-xs text-[#5d5d5d]">Ответственный менеджер</p>
-              <div className="grid grid-cols-[1fr_180px] items-end gap-4">
-                <div>
-                  <div className="h-7 border-b border-[#2f2f2f]" />
-                  <p className="mt-1 text-[10px] text-[#6d6d6d]">Подпись</p>
-                </div>
-                <div>
-                  <div className="h-7 border-b border-[#2f2f2f] px-1 text-sm leading-7">{managerUsername}</div>
-                  <p className="mt-1 text-[10px] text-[#6d6d6d]">ФИО</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap justify-end gap-2 print:hidden">
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => router.push("/dashboard/forecast")}>
               Назад к параметрам
             </Button>
