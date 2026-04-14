@@ -1,10 +1,22 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { ProductsImportForm } from "@/components/features/products-import-form";
+import { getAuthenticatedUserContext } from "@/lib/auth-context";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsImportPage() {
+  const user = await getAuthenticatedUserContext();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role !== "ADMIN") {
+    redirect("/dashboard/inventory");
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">

@@ -1,4 +1,4 @@
-﻿import type { OrderMode, Prisma } from "@prisma/client";
+import type { OrderMode, Prisma } from "@prisma/client";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,6 +28,9 @@ export interface CalculateOrderServiceInput {
   turnoverToNearestDelivery: number;
   turnoverToNextDelivery: number;
   safetyStockDays: number;
+  userId: string;
+  restaurantId: string;
+  restaurantName: string;
 }
 
 export interface CalculateOrderServiceResult {
@@ -90,6 +93,9 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
   const daysToNextDelivery = getDaysBetween(input.calculationDate, input.nextSupplyDate);
 
   const latestInventorySession = await prisma.inventorySession.findFirst({
+    where: {
+      restaurantId: input.restaurantId,
+    },
     orderBy: [{ sessionDate: "desc" }, { createdAt: "desc" }],
     include: {
       items: {
@@ -136,6 +142,8 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
         predictedGuests: 0,
         leadTimeDays: daysToNextDelivery,
         safetyPercent: input.safetyStockDays,
+        createdById: input.userId,
+        restaurantId: input.restaurantId,
         comment: JSON.stringify({
           nearestSupplyDate: input.nearestSupplyDate.toISOString(),
           nextSupplyDate: input.nextSupplyDate.toISOString(),
@@ -150,6 +158,8 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
       data: {
         forecastSessionId: forecastSession.id,
         inventorySessionId: latestInventorySession.id,
+        createdById: input.userId,
+        restaurantId: input.restaurantId,
         status: "READY",
         calculatedAt: new Date(),
       },
@@ -195,6 +205,8 @@ export async function calculateAndSaveOrder(input: CalculateOrderServiceInput): 
       safetyStockDays: input.safetyStockDays,
       daysToNextDelivery,
       productsCount: calculatedItems.length,
+      restaurantId: input.restaurantId,
+      restaurantName: input.restaurantName,
       totalRoundedOrder: Number(totalRoundedOrder.toFixed(6)),
       generatedAt: new Date().toISOString(),
     };

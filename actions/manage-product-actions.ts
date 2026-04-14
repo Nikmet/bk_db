@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdminUserContext } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 import {
   productManagementSchema,
@@ -19,7 +20,23 @@ function revalidateProductPaths() {
   revalidatePath("/dashboard/inventory");
 }
 
+async function ensureAdmin(): Promise<boolean> {
+  try {
+    await requireAdminUserContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function createProductAction(values: ProductManagementValues): Promise<ManageProductActionResult> {
+  if (!(await ensureAdmin())) {
+    return {
+      ok: false,
+      message: "Недостаточно прав для изменения справочника товаров.",
+    };
+  }
+
   const parsed = productManagementSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -80,6 +97,13 @@ export async function updateProductAction(
   productId: string,
   values: ProductManagementValues,
 ): Promise<ManageProductActionResult> {
+  if (!(await ensureAdmin())) {
+    return {
+      ok: false,
+      message: "Недостаточно прав для изменения справочника товаров.",
+    };
+  }
+
   const parsed = productManagementSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -157,7 +181,14 @@ export async function updateProductAction(
   };
 }
 
-export async function deactivateProductAction(productId: string): Promise<ManageProductActionResult> {
+export async function deleteProductAction(productId: string): Promise<ManageProductActionResult> {
+  if (!(await ensureAdmin())) {
+    return {
+      ok: false,
+      message: "Недостаточно прав для изменения справочника товаров.",
+    };
+  }
+
   const product = await prisma.product.findUnique({
     where: {
       id: productId,
@@ -178,7 +209,7 @@ export async function deactivateProductAction(productId: string): Promise<Manage
   if (!product.isActive) {
     return {
       ok: true,
-      message: "Товар уже деактивирован.",
+      message: "Товар уже удалён из рабочего справочника.",
     };
   }
 
@@ -195,6 +226,6 @@ export async function deactivateProductAction(productId: string): Promise<Manage
 
   return {
     ok: true,
-    message: "Товар деактивирован.",
+    message: "Товар удалён из рабочего справочника.",
   };
 }

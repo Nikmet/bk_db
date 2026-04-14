@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import {
   createProductAction,
-  deactivateProductAction,
+  deleteProductAction,
   updateProductAction,
 } from "@/actions/manage-product-actions";
 import { Badge } from "@/components/ui/badge";
@@ -221,23 +221,23 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
     });
   };
 
-  const handleDeactivate = (product: ProductRecord) => {
+  const handleDelete = (product: ProductRecord) => {
     if (!product.isActive) {
       return;
     }
 
-    const shouldProceed = window.confirm(`Деактивировать товар "${product.name}"?`);
+    const shouldProceed = window.confirm(`Удалить товар "${product.name}" из рабочего справочника?`);
 
     if (!shouldProceed) {
       return;
     }
 
     startTransition(async () => {
-      const result = await deactivateProductAction(product.id);
+      const result = await deleteProductAction(product.id);
 
       toast({
         type: result.ok ? "success" : "error",
-        title: result.ok ? "Товар обновлён" : "Не удалось деактивировать товар",
+        title: result.ok ? "Товар обновлён" : "Не удалось удалить товар",
         description: result.message,
       });
 
@@ -258,7 +258,7 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
             <div>
               <CardTitle className="text-3xl">Справочник товаров</CardTitle>
               <CardDescription>
-                Управляйте рабочей номенклатурой: фильтруйте, редактируйте и отключайте товары без удаления истории.
+                Управляйте рабочей номенклатурой: фильтруйте, редактируйте и мягко удаляйте товары без потери истории.
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -311,7 +311,7 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
                 className="h-9 rounded-md border border-[var(--bk-border)] bg-[var(--bk-surface)] px-3 text-sm text-[var(--bk-text)] outline-none focus:border-[var(--bk-border-strong)]"
               >
                 <option value="active">Только активные</option>
-                <option value="inactive">Только неактивные</option>
+                <option value="inactive">Только удалённые</option>
                 <option value="all">Все товары</option>
               </select>
             </div>
@@ -328,39 +328,17 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
               <table className="min-w-[1220px] w-full border-collapse text-sm">
                 <thead className="sticky top-0 z-10 bg-[var(--bk-surface-strong)]">
                   <tr>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Код
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Наименование
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Категория
-                    </th>
-                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Ед.
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      В коробке
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      В упаковке
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Норма расхода
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Режим заказа
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Шаг
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Статус
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">
-                      Действия
-                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Код</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Наименование</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Категория</th>
+                    <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Ед.</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">В коробке</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">В упаковке</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Норма расхода</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Режим заказа</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Шаг</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Статус</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--bk-text-muted)]">Действия</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -377,7 +355,7 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
                       <td className="px-3 py-2 text-right">{product.orderStep}</td>
                       <td className="px-3 py-2">
                         <Badge variant={product.isActive ? "success" : "warning"}>
-                          {product.isActive ? "Активен" : "Неактивен"}
+                          {product.isActive ? "Активен" : "Удалён"}
                         </Badge>
                       </td>
                       <td className="px-3 py-2">
@@ -386,14 +364,8 @@ export function ProductsCatalog({ products, categories }: ProductsCatalogProps) 
                             Редактировать
                           </Button>
                           {product.isActive ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeactivate(product)}
-                              disabled={isPending}
-                            >
-                              Деактивировать
+                            <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(product)} disabled={isPending}>
+                              Удалить
                             </Button>
                           ) : null}
                         </div>

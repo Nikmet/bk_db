@@ -1,28 +1,5 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
-import { prisma } from "@/lib/prisma";
-
-interface LegacyResultPageProps {
-  searchParams: Promise<{ orderCalculationId?: string }>;
-}
-
-export default async function LegacyResultPage({ searchParams }: LegacyResultPageProps) {
-  const params = await searchParams;
-
-  if (params.orderCalculationId) {
-    redirect(`/dashboard/result/${params.orderCalculationId}`);
-  }
-
-  const latest = await prisma.orderCalculation.findFirst({
-    orderBy: [{ calculatedAt: "desc" }],
-    select: {
-      id: true,
-    },
-  });
-
-  if (!latest) {
-    redirect("/dashboard/forecast");
-  }
-
-  redirect(`/dashboard/result/${latest.id}`);
+export default async function LegacyCalculationResultPage() {
+  redirect("/dashboard/result");
 }

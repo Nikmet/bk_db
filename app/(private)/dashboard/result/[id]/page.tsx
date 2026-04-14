@@ -1,6 +1,7 @@
-﻿import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { OrderResultView } from "@/components/features/order-result-view";
+import { requireRestaurantScope } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 
 interface ResultByIdPageProps {
@@ -10,14 +11,28 @@ interface ResultByIdPageProps {
 export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
   const { id } = await params;
 
-  const calculation = await prisma.orderCalculation.findUnique({
+  let scope;
+
+  try {
+    scope = await requireRestaurantScope();
+  } catch {
+    redirect("/dashboard/forecast");
+  }
+
+  const calculation = await prisma.orderCalculation.findFirst({
     where: {
       id,
+      restaurantId: scope.restaurantId,
     },
     include: {
       inventorySession: {
         select: {
           location: true,
+          restaurant: {
+            select: {
+              name: true,
+            },
+          },
         },
       },
       items: {
@@ -47,7 +62,7 @@ export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
     id: calculation.id,
     status: calculation.status,
     calculatedAt: calculation.calculatedAt.toISOString(),
-    location: calculation.inventorySession?.location,
+    location: calculation.inventorySession?.restaurant.name ?? calculation.inventorySession?.location,
     items: calculation.items.map((item) => ({
       id: item.id,
       code: item.product.code,
@@ -62,5 +77,5 @@ export default async function ResultByIdPage({ params }: ResultByIdPageProps) {
     })),
   };
 
-  return <OrderResultView calculation={viewData} />;
+  return <OrderResultView calculation={viewData} managerUsername={scope.user.fullName} />;
 }

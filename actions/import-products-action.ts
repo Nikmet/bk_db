@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdminUserContext } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 import { buildCategoryCode, mapOrderMode, mapUnit, normalizeProductCode } from "@/lib/utils/product-import";
 import { productImportRowSchema, type ProductImportDraftRow } from "@/lib/validation/product-import";
@@ -31,6 +32,18 @@ function getUniqueCategoryCode(baseCode: string, usedCodes: Set<string>): string
 }
 
 export async function importProductsAction(rows: ProductImportDraftRow[]): Promise<ImportProductsActionResult> {
+  try {
+    await requireAdminUserContext();
+  } catch {
+    return {
+      ok: false,
+      message: "Недостаточно прав для импорта товаров.",
+      added: 0,
+      updated: 0,
+      skipped: rows.length,
+    };
+  }
+
   if (!Array.isArray(rows) || rows.length === 0) {
     return {
       ok: false,

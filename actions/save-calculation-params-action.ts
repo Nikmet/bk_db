@@ -1,8 +1,10 @@
-﻿"use server";
+"use server";
 
+import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import type { ActionResult } from "@/actions/action-result";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const paramsSchema = z.object({
@@ -13,6 +15,12 @@ const paramsSchema = z.object({
 });
 
 export async function saveCalculationParamsAction(formData: FormData): Promise<ActionResult> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return { ok: false, message: "Сессия истекла. Выполните вход повторно." };
+  }
+
   const parsed = paramsSchema.safeParse({
     forecastGuests: formData.get("forecastGuests"),
     leadTimeDays: formData.get("leadTimeDays"),
@@ -41,6 +49,7 @@ export async function saveCalculationParamsAction(formData: FormData): Promise<A
         leadTimeDays,
         safetyPercent,
         notes,
+        createdById: session.user.id,
       },
     });
 
@@ -49,6 +58,7 @@ export async function saveCalculationParamsAction(formData: FormData): Promise<A
     await tx.calculationResult.create({
       data: {
         status: "READY",
+        createdById: session.user.id,
         paramsId: params.id,
         inventorySnapshotId: latestSnapshot?.id,
         summary: {

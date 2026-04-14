@@ -1,7 +1,8 @@
-﻿"use server";
+"use server";
 
 import { revalidatePath } from "next/cache";
 
+import { requireRestaurantScope } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 import { inventoryFormSchema, type InventoryFormValues } from "@/lib/validation/inventory";
 
@@ -12,6 +13,17 @@ export interface SaveInventorySessionResult {
 }
 
 export async function saveInventorySessionAction(values: InventoryFormValues): Promise<SaveInventorySessionResult> {
+  let scope;
+
+  try {
+    scope = await requireRestaurantScope();
+  } catch {
+    return {
+      ok: false,
+      message: "Сессия истекла или ресторан недоступен.",
+    };
+  }
+
   const parsed = inventoryFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -72,7 +84,9 @@ export async function saveInventorySessionAction(values: InventoryFormValues): P
     const inventorySession = await tx.inventorySession.create({
       data: {
         sessionDate: new Date(),
-        location: "Burger King - Основной склад",
+        location: scope.restaurantName ?? "Ресторан",
+        createdById: scope.user.id,
+        restaurantId: scope.restaurantId,
       },
     });
 
@@ -89,6 +103,7 @@ export async function saveInventorySessionAction(values: InventoryFormValues): P
   });
 
   revalidatePath("/dashboard/inventory");
+  revalidatePath("/dashboard/result");
 
   return {
     ok: true,

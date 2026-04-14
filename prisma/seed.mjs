@@ -9,7 +9,7 @@ async function seedRestaurants() {
     { code: "BK_ARBAT", name: "Burger King Арбат", isActive: true },
   ];
 
-  const restaurantMap = new Map<string, string>();
+  const restaurantMap = new Map();
 
   for (const restaurant of restaurants) {
     const record = await prisma.restaurant.upsert({
@@ -29,7 +29,7 @@ async function seedRestaurants() {
   return restaurantMap;
 }
 
-async function seedUsers(restaurantMap: Map<string, string>) {
+async function seedUsers(restaurantMap) {
   const adminPasswordHash = await hash("admin123", 10);
   const managerPasswordHash = await hash("manager123", 10);
 
@@ -86,7 +86,7 @@ async function seedCategories() {
     { code: "DRY_STOCK", name: "Сухой сток", sortOrder: 30 },
   ];
 
-  const categoryMap = new Map<string, string>();
+  const categoryMap = new Map();
 
   for (const category of categories) {
     const record = await prisma.productCategory.upsert({
@@ -104,7 +104,7 @@ async function seedCategories() {
   return categoryMap;
 }
 
-async function seedProducts(categoryMap: Map<string, string>) {
+async function seedProducts(categoryMap) {
   const products = [
     {
       code: "BUN_CLASSIC",

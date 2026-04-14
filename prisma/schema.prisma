@@ -29,22 +29,45 @@ enum OrderMode {
   BOX
 }
 
+model Restaurant {
+  id                String             @id @default(cuid())
+  code              String             @unique
+  name              String             @unique
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  users             User[]
+  inventorySessions InventorySession[]
+  forecastSessions  ForecastSession[]
+  orderCalculations OrderCalculation[]
+
+  @@index([isActive])
+  @@index([name])
+}
+
 model User {
   id                 String              @id @default(cuid())
   username           String              @unique
+  fullName           String
   passwordHash       String
   role               UserRole            @default(MANAGER)
+  isActive           Boolean             @default(true)
+  restaurantId       String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
+  restaurant         Restaurant?         @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
   inventorySnapshots InventorySnapshot[] @relation("InventoryCreatedBy")
   calculationParams  CalculationParams[] @relation("ParamsCreatedBy")
   calculationResults CalculationResult[] @relation("ResultCreatedBy")
-
   inventorySessions  InventorySession[]  @relation("InventorySessionCreatedBy")
   forecastSessions   ForecastSession[]   @relation("ForecastSessionCreatedBy")
   orderCalculations  OrderCalculation[]  @relation("OrderCalculationCreatedBy")
   revenueHistory     RevenueHistory[]    @relation("RevenueHistoryCreatedBy")
+
+  @@index([restaurantId])
+  @@index([isActive])
 }
 
 model ProductCategory {
@@ -89,16 +112,19 @@ model InventorySession {
   location     String
   comment      String?
   createdById  String?
+  restaurantId String
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
   createdBy         User?              @relation("InventorySessionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  restaurant        Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
   items             InventoryItem[]
   orderCalculations OrderCalculation[]
 
   @@index([sessionDate])
   @@index([location])
   @@index([createdById])
+  @@index([restaurantId])
 }
 
 model InventoryItem {
@@ -127,14 +153,17 @@ model ForecastSession {
   safetyPercent   Float              @default(0)
   comment         String?
   createdById     String?
+  restaurantId    String
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
   createdBy         User?               @relation("ForecastSessionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  restaurant        Restaurant          @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
   orderCalculations OrderCalculation[]
 
   @@index([forecastDate])
   @@index([createdById])
+  @@index([restaurantId])
 }
 
 model OrderCalculation {
@@ -142,20 +171,23 @@ model OrderCalculation {
   forecastSessionId  String
   inventorySessionId String?
   createdById        String?
+  restaurantId       String
   status             ResultStatus           @default(DRAFT)
   calculatedAt       DateTime               @default(now())
   summary            Json?
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
 
-  forecastSession  ForecastSession   @relation(fields: [forecastSessionId], references: [id], onDelete: Cascade)
-  inventorySession InventorySession? @relation(fields: [inventorySessionId], references: [id], onDelete: SetNull)
-  createdBy        User?             @relation("OrderCalculationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  items            OrderCalculationItem[]
+  forecastSession    ForecastSession        @relation(fields: [forecastSessionId], references: [id], onDelete: Cascade)
+  inventorySession   InventorySession?      @relation(fields: [inventorySessionId], references: [id], onDelete: SetNull)
+  createdBy          User?                  @relation("OrderCalculationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  restaurant         Restaurant             @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  items              OrderCalculationItem[]
 
   @@index([forecastSessionId])
   @@index([inventorySessionId])
   @@index([createdById])
+  @@index([restaurantId])
   @@index([status])
 }
 

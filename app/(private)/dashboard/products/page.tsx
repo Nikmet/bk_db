@@ -1,9 +1,22 @@
+import { redirect } from "next/navigation";
+
 import { ProductsCatalog } from "@/components/features/products-catalog";
+import { getAuthenticatedUserContext } from "@/lib/auth-context";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
+  const user = await getAuthenticatedUserContext();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role !== "ADMIN") {
+    redirect("/dashboard/inventory");
+  }
+
   const [categoriesFromDb, productsFromDb] = await Promise.all([
     prisma.productCategory.findMany({
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
